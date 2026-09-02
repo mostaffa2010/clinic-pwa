@@ -435,11 +435,15 @@ export class PatientsManager {
 
     // 3. Activate print class and trigger print
     document.body.classList.add('printing-sheet');
+
+    const cleanPrintClass = () => {
+      document.body.classList.remove('printing-sheet');
+      window.removeEventListener('afterprint', cleanPrintClass);
+    };
+    window.addEventListener('afterprint', cleanPrintClass);
+
     window.print();
 
-    // Clean up class after print
-    setTimeout(() => {
-      document.body.classList.remove('printing-sheet');
-    }, 1000);
+    setTimeout(cleanPrintClass, 2000);
   }
 }

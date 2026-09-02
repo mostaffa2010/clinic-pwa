@@ -1169,7 +1169,7 @@
   
   <!-- Printable Patient Clinical Sheet (Visible only when printing sheet) -->
   <div id="printable-patient-sheet" style="display: none;">
-    <div class="print-header" style="margin-bottom: 10px;">
+    <div class="sheet-print-header" style="text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 3px; margin-bottom: 6px;">
       <h1 style="font-size: 14pt; margin: 0; color: #0284c7;"><i class="fa-solid fa-hospital"></i> Alexandria Specialist Center for Physical Therapy (ASCPT)</h1>
       <p style="font-size: 9pt; margin: 2px 0; font-weight: bold; color: #334155;">استمارة تقييم وخطة العلاج الطبيعي للمريض - Physical Therapy Clinical Record</p>
       <p style="font-size: 7.5pt; color: #64748b;" id="print-sheet-meta">تاريخ الطباعة: 2026-09-02</p>
@@ -1198,33 +1198,33 @@
     </table>
 
     <!-- 1. Diagnosis -->
-    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-      <strong style="color: #0284c7;">1. التشخيص الطبي والعضو المصاب:</strong>
+    <div class="sheet-section-box">
+      <strong>1. التشخيص الطبي والعضو المصاب:</strong>
       <div style="margin-top: 3px;" id="p-print-diagnosis">-</div>
     </div>
 
     <!-- 2. Modalities -->
-    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-      <strong style="color: #0284c7;">2. الأجهزة والوسائل الفيزيائية (Physical Modalities):</strong>
+    <div class="sheet-section-box">
+      <strong>2. الأجهزة والوسائل الفيزيائية (Physical Modalities):</strong>
       <div style="margin-top: 3px;" id="p-print-modalities">-</div>
     </div>
 
     <!-- 3. Procedures -->
-    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-      <strong style="color: #0284c7;">3. الإجراءات والعلاج اليدوي (Manual Therapy & Procedures):</strong>
+    <div class="sheet-section-box">
+      <strong>3. الإجراءات والعلاج اليدوي (Manual Therapy & Procedures):</strong>
       <div style="margin-top: 3px;" id="p-print-procedures">-</div>
     </div>
 
     <!-- 4. Exercises -->
-    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-      <strong style="color: #0284c7;">4. التمارين العلاجية الموصوفة (Therapeutic Exercises):</strong>
+    <div class="sheet-section-box">
+      <strong>4. التمارين العلاجية الموصوفة (Therapeutic Exercises):</strong>
       <div style="margin-top: 3px;" id="p-print-exercises">-</div>
       <div style="margin-top: 4px; font-size: 8pt; color: #334155;" id="p-print-exercise-details"></div>
     </div>
 
     <!-- 5. Plan & Notes -->
-    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; margin-bottom: 8px; font-size: 8.5pt;">
-      <strong style="color: #0284c7;">5. الخطة المقترحة وملاحظات الطبيب:</strong>
+    <div class="sheet-section-box">
+      <strong>5. الخطة المقترحة وملاحظات الطبيب:</strong>
       <div style="margin-top: 3px;" id="p-print-notes">-</div>
     </div>
 
