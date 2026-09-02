@@ -111,10 +111,21 @@ export class FinanceManager {
       netCashEl.style.color = netCash >= 0 ? 'var(--success)' : 'var(--danger)';
     }
 
+    // Update Doctor Filter options dynamically
+    const docFilter = document.getElementById('finance-doctor-filter');
+    if (docFilter) {
+      const currentVal = docFilter.value;
+      docFilter.innerHTML = '<option value="all">كل الأطباء</option>' + 
+        doctors.map(d => `<option value="${d}">${d}</option>`).join('');
+      if (doctors.includes(currentVal) || currentVal === 'all') {
+        docFilter.value = currentVal;
+      }
+    }
+
     // Update Doctors Breakdown UI
     const docContainer = document.getElementById('doctors-breakdown-container');
     if (docContainer) {
-      const doctors = ['د. مصطفى', 'د. أحمد', 'د. سارة', 'د. كريم'];
+      const doctors = await db.getDoctors();
       docContainer.innerHTML = doctors.map(doc => {
         const count = docCounts[doc] || 0;
         return `

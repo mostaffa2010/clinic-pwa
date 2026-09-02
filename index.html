@@ -272,10 +272,7 @@
                 <div class="form-group">
                   <label for="session-doctor-select">الطبيب المعالج *</label>
                   <select id="session-doctor-select" class="form-control" required>
-                    <option value="د. مصطفى">د. مصطفى</option>
-                    <option value="د. أحمد">د. أحمد</option>
-                    <option value="د. سارة">د. سارة</option>
-                    <option value="د. كريم">د. كريم</option>
+                    <!-- Populated dynamically from clinic team -->
                   </select>
                 </div>
 
@@ -400,10 +397,6 @@
               <label style="font-size: 0.85rem; font-weight: bold;">تصفية بالطبيب:</label>
               <select id="finance-doctor-filter" class="form-control" style="width: auto;">
                 <option value="all">كل الأطباء</option>
-                <option value="د. مصطفى">د. مصطفى</option>
-                <option value="د. أحمد">د. أحمد</option>
-                <option value="د. سارة">د. سارة</option>
-                <option value="د. كريم">د. كريم</option>
               </select>
             </div>
           </div>
@@ -679,10 +672,7 @@
           <div class="form-group" style="margin-top: 12px;">
             <label for="p-doctor">الدكتور المعالج *</label>
             <select id="p-doctor" class="form-control" required>
-              <option value="د. مصطفى">د. مصطفى</option>
-              <option value="د. أحمد">د. أحمد</option>
-              <option value="د. سارة">د. سارة</option>
-              <option value="د. كريم">د. كريم</option>
+              <!-- Populated dynamically from clinic team -->
             </select>
           </div>
 
@@ -765,25 +755,17 @@
 
           <div class="form-group" style="margin-bottom: 12px;">
             <label>اسم المستخدم أو الإيميل</label>
-            <input type="email" id="login-email" class="form-control" placeholder="admin@clinic.com" required value="admin@clinic.com">
+            <input type="email" id="login-email" class="form-control" placeholder="admin@ascpt.com" required value="">
           </div>
 
           <div class="form-group" style="margin-bottom: 15px;">
             <label>كلمة المرور</label>
-            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required value="123456">
+            <input type="password" id="login-password" class="form-control" placeholder="كلمة المرور الخاصة بحسابك" required value="">
           </div>
 
           <div id="login-error-msg" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 10px; display: none;"></div>
 
-          <!-- Quick Demo Buttons for easy mobile testing -->
-          <div style="background-color: var(--bg-subtle); padding: 10px; border-radius: var(--radius-md); font-size: 0.78rem;">
-            <div style="font-weight: bold; margin-bottom: 5px;">دخول تجريبي سريع (بدون إعداد فايربيز):</div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button type="button" class="btn btn-outline btn-sm" onclick="auth.quickDemoLogin('admin')">مدير المركز</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="auth.quickDemoLogin('doctor')">طبيب</button>
-              <button type="button" class="btn btn-outline btn-sm" onclick="auth.quickDemoLogin('receptionist')">استقبال</button>
-            </div>
-          </div>
+
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary" style="width: 100%;">دخول للنظام</button>

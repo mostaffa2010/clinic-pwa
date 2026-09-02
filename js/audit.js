@@ -5,6 +5,7 @@
 import { db } from './db.js';
 import { auth } from './auth.js';
 import { RolesManager } from './roles.js';
+import { firebaseConfig, isFirebaseConfigured } from './firebase-config.js';
 
 export class AuditAndAdminManager {
   constructor(app) {
@@ -50,8 +51,21 @@ export class AuditAndAdminManager {
       role
     };
 
+    // إنشاء المستخدم في Firebase Authentication سحابياً
+    if (isFirebaseConfigured && window.firebase) {
+      try {
+        const secApp = window.firebase.initializeApp(firebaseConfig, 'SecondaryAuth_' + Date.now());
+        await secApp.auth().createUserWithEmailAndPassword(email, password);
+        await secApp.delete();
+        console.log('User created in Firebase Auth:', email);
+      } catch (authErr) {
+        console.warn('Firebase Auth user create note:', authErr.message);
+      }
+    }
+
     await db.saveUser(newUser);
     await db.logAudit('إضافة موظف', `قام المدير بإضافة مستخدم جديد: ${name} بدقة دور (${RolesManager.getRoleLabel(role)})`, currentUser);
+    await this.app.populateDoctorDropdowns();
 
     document.getElementById('form-add-user').reset();
     this.app.showToast('تم إنشاء حساب المستخدم بنجاح');

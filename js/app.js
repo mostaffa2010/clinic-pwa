@@ -58,6 +58,7 @@ class App {
     });
 
     // 5. تحميل الوحدات
+    await this.populateDoctorDropdowns();
     await this.patientsManager.init();
     await this.sessionsManager.init();
     await this.financeManager.init();
@@ -257,7 +258,26 @@ class App {
     }
   }
 
+  async populateDoctorDropdowns() {
+    const doctors = await db.getDoctors();
+
+    const pDoc = document.getElementById('p-doctor');
+    if (pDoc) {
+      const prev = pDoc.value;
+      pDoc.innerHTML = doctors.map(d => `<option value="${d}">${d}</option>`).join('');
+      if (prev && doctors.includes(prev)) pDoc.value = prev;
+    }
+
+    const sessDoc = document.getElementById('session-doctor-select');
+    if (sessDoc) {
+      const prev = sessDoc.value;
+      sessDoc.innerHTML = doctors.map(d => `<option value="${d}">${d}</option>`).join('');
+      if (prev && doctors.includes(prev)) sessDoc.value = prev;
+    }
+  }
+
   async refreshAll() {
+    await this.populateDoctorDropdowns();
     if (this.patientsManager) await this.patientsManager.loadPatients();
     if (this.sessionsManager) await this.sessionsManager.loadTodaySessions();
     if (this.financeManager) await this.financeManager.loadDailyReport();

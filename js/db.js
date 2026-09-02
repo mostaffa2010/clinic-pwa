@@ -23,10 +23,7 @@ class DatabaseService {
     }
     if (!localStorage.getItem('pc_users')) {
       localStorage.setItem('pc_users', JSON.stringify([
-        { id: 'u-admin', name: 'د. مصطفى محمود', email: 'admin@clinic.com', password: '123', role: 'admin' },
-        { id: 'u-doc1', name: 'د. أحمد خليل', email: 'ahmed@clinic.com', password: '123', role: 'doctor' },
-        { id: 'u-doc2', name: 'د. سارة عادل', email: 'sara@clinic.com', password: '123', role: 'doctor' },
-        { id: 'u-rec', name: 'أ. منار خالد', email: 'rec@clinic.com', password: '123', role: 'receptionist' }
+        { id: 'u-admin', name: 'مدير المركز (Admin)', email: 'admin@ascpt.com', role: 'admin' }
       ]));
     }
     if (!localStorage.getItem('pc_sessions')) {
@@ -45,6 +42,17 @@ class DatabaseService {
     localStorage.setItem('pc_sessions', JSON.stringify([]));
     localStorage.setItem('pc_expenses', JSON.stringify([]));
     localStorage.setItem('pc_audit_logs', JSON.stringify([]));
+    localStorage.setItem('pc_users', JSON.stringify([
+      { id: 'u-admin', name: 'مدير المركز (Admin)', email: 'admin@ascpt.com', role: 'admin' }
+    ]));
+  }
+
+  async getDoctors() {
+    const users = await this.getUsers();
+    const docs = users
+      .filter(u => u.role === 'doctor' || u.role === 'admin')
+      .map(u => u.name);
+    return docs.length > 0 ? Array.from(new Set(docs)) : ['مدير المركز'];
   }
 
   // =================== PATIENTS ===================

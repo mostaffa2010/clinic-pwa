@@ -25,9 +25,17 @@ class AuthService {
     // فحص المستخدم المحفوظ محلياً أولاً للسرعة
     const saved = localStorage.getItem('pc_current_user');
     if (saved) {
-      this.currentUser = JSON.parse(saved);
-      this.updateUI();
-      if (this.onUserChanged) this.onUserChanged(this.currentUser);
+      const parsed = JSON.parse(saved);
+      // تنظيف تلقائي لأي جلسة تجريبية قديمة مسجلة بالإيميل الافتراضي
+      if (parsed.email && parsed.email.includes('clinic.com')) {
+        localStorage.removeItem('pc_current_user');
+        this.currentUser = null;
+        this.showLoginModal();
+      } else {
+        this.currentUser = parsed;
+        this.updateUI();
+        if (this.onUserChanged) this.onUserChanged(this.currentUser);
+      }
     } else {
       this.showLoginModal();
     }
@@ -40,7 +48,7 @@ class AuthService {
           let matched = users.find(u => u.email.toLowerCase() === user.email.toLowerCase());
           this.currentUser = {
             id: user.uid,
-            name: matched?.name || user.displayName || 'د. مصطفى محمود (مدير المركز)',
+            name: matched?.name || user.displayName || 'مدير المركز (ASCPT)',
             email: user.email,
             role: matched?.role || 'admin'
           };
@@ -82,7 +90,7 @@ class AuthService {
         if (!matchedUser) {
           matchedUser = {
             id: fbUser.uid,
-            name: fbUser.displayName || 'د. مصطفى محمود (مدير المركز)',
+            name: fbUser.displayName || (cleanEmail === 'admin@ascpt.com' ? 'مدير المركز (ASCPT)' : 'مستخدم المركز'),
             email: cleanEmail,
             role: 'admin'
           };
