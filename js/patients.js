@@ -387,6 +387,128 @@ export class PatientsManager {
     await this.loadPatients();
   }
 
+  // ================= Dynamic Clinical Chips (Manager Controlled) =================
+  renderAllClinicalChips(sheet = {}) {
+    this.renderCategoryChips('modality', 'sheet-modalities-container', sheet.modalities || []);
+    this.renderCategoryChips('procedure', 'sheet-procedures-container', sheet.procedures || []);
+    this.renderCategoryChips('exercise', 'sheet-exercises-container', sheet.exercises || []);
+  }
+
+  renderCategoryChips(category, containerId, selectedList = []) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const options = db.getClinicalOptions(category);
+    const iconMap = {
+      modality: 'fa-solid fa-bolt-lightning',
+      procedure: 'fa-solid fa-hand-holding-hand',
+      exercise: 'fa-solid fa-person-running'
+    };
+    const defaultIcon = iconMap[category] || 'fa-solid fa-circle-check';
+
+    container.innerHTML = options.map(opt => {
+      const isSelected = selectedList.includes(opt);
+      return `
+        <button type="button" class="chip-choice sheet-chip ${isSelected ? 'selected' : ''}" data-group="${category}" data-val="${opt}">
+          <i class="${defaultIcon}"></i> ${opt}
+        </button>
+      `;
+    }).join('');
+
+    // Re-bind chip selection click listener
+    container.querySelectorAll('.chip-choice').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('selected');
+      });
+    });
+  }
+
+  openAddOptionModal(category) {
+    const user = auth.getCurrentUser();
+    if (!RolesManager.canManageUsers(user)) {
+      this.app.showAlert('إضافة وحذف الأزرار الدائمة متاح لمدير المركز فقط. يمكن للأطباء تدوين أي ملاحظات إضافية في خانة الملاحظات بالأسفل.', 'صلاحية المدير');
+      return;
+    }
+
+    const titles = {
+      modality: 'إضافة جهاز فيزيائي دائم',
+      procedure: 'إضافة إجراء / علاج يدوي دائم',
+      exercise: 'إضافة تمرين علاجي دائم'
+    };
+
+    document.getElementById('opt-target-category').value = category;
+    document.getElementById('modal-opt-title').innerHTML = `<i class="fa-solid fa-circle-plus"></i> ${titles[category] || 'إضافة زر جديد'}`;
+    document.getElementById('opt-new-name').value = '';
+    this.app.openModal('modal-add-clinical-option');
+  }
+
+  async handleSaveNewOption(e) {
+    e.preventDefault();
+    const category = document.getElementById('opt-target-category').value;
+    const nameInput = document.getElementById('opt-new-name');
+    const name = nameInput.value.trim();
+
+    if (!name || !category) return;
+
+    await db.addClinicalOption(category, name);
+    const containerMap = {
+      modality: 'sheet-modalities-container',
+      procedure: 'sheet-procedures-container',
+      exercise: 'sheet-exercises-container'
+    };
+
+    // Preserve currently selected chips
+    const curSelected = Array.from(document.querySelectorAll(`#${containerMap[category]} .sheet-chip.selected`)).map(b => b.getAttribute('data-val'));
+    curSelected.push(name); // select newly added option
+    this.renderCategoryChips(category, containerMap[category], curSelected);
+
+    this.app.closeModal('modal-add-clinical-option');
+    this.app.showToast(`تمت إضافة زر "${name}" لجميع أطباء المركز بنجاح`);
+    await db.logAudit('إضافة زر سريري', `إضافة زر ${name} في قسم ${category}`, auth.getCurrentUser());
+  }
+
+  async openDeleteOptionModal(category) {
+    const user = auth.getCurrentUser();
+    if (!RolesManager.canManageUsers(user)) {
+      this.app.showAlert('إضافة وحذف الأزرار الدائمة متاح لمدير المركز فقط.', 'صلاحية المدير');
+      return;
+    }
+
+    const options = db.getClinicalOptions(category);
+    if (!options || options.length === 0) {
+      this.app.showAlert('لا توجد أزرار مضافة لحذفها في هذا القسم.', 'تنبيه');
+      return;
+    }
+
+    // Prompt manager with selection
+    const optListText = options.map((o, idx) => `${idx + 1}. ${o}`).join('\n');
+    const inputNum = window.prompt(`أدخل رقم الزر الذي ترغب في حذفه نهائياً من قائمة الأطباء:\n\n${optListText}`);
+    
+    if (inputNum) {
+      const idx = parseInt(inputNum) - 1;
+      if (idx >= 0 && idx < options.length) {
+        const toDelete = options[idx];
+        const confirmed = await this.app.showConfirm(`هل أنت متأكد من حذف زر "${toDelete}" نهائياً؟`, 'تأكيد الحذف');
+        if (confirmed) {
+          await db.deleteClinicalOption(category, toDelete);
+          const containerMap = {
+            modality: 'sheet-modalities-container',
+            procedure: 'sheet-procedures-container',
+            exercise: 'sheet-exercises-container'
+          };
+          const curSelected = Array.from(document.querySelectorAll(`#${containerMap[category]} .sheet-chip.selected`))
+            .map(b => b.getAttribute('data-val'))
+            .filter(v => v !== toDelete);
+          this.renderCategoryChips(category, containerMap[category], curSelected);
+          this.app.showToast(`تم حذف زر "${toDelete}"`);
+          await db.logAudit('حذف زر سريري', `حذف زر ${toDelete} من قسم ${category}`, auth.getCurrentUser());
+        }
+      } else {
+        this.app.showAlert('رقم الاختيار غير صحيح', 'خطأ');
+      }
+    }
+  }
+
   printCurrentSheet() {
     if (!this.currentSheetPatient) {
       this.app.showAlert('يرجى فتح شيت المريض أولاً قبل الطباعة.', 'تنبيه', 'warning');

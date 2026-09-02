@@ -591,6 +591,64 @@ class DatabaseService {
     }
     return true;
   }
+
+// ================= Dynamic Clinical Options (Modalities, Procedures, Exercises) =================
+  getClinicalOptions(category) {
+    const key = (this.isTraining ? 'pc_sb_opt_' : 'pc_opt_') + category;
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+
+    const defaults = {
+      modality: [
+        'TENS (كهرباء تسكينية)',
+        'Ultrasound (موجات صوتية)',
+        'كمادات ساخنة (Hot Pack)',
+        'كمادات باردة / ثلج (Cryotherapy)',
+        'الشد الفقري (Traction)',
+        'ليزر علاجي (Laser Therapy)',
+        'موجات تصادمية (Shockwave)',
+        'أشعة تحت الحمراء (Infrared)',
+        'كؤوس هواء (Cupping)'
+      ],
+      procedure: [
+        'تحريك المفاصل (Joint Mobilization)',
+        'تحرير اللفافة العضلية (Myofascial Release)',
+        'تدليك علاجي عميق (Deep Tissue Massage)',
+        'إطالات عضلية (Muscle Stretching)',
+        'الإبر الجافة (Dry Needling)',
+        'الأشرطة اللاصقة الحركية (Kinesio Taping)'
+      ],
+      exercise: [
+        'تمارين التقوية العضلية (Strengthening)',
+        'تمارين المدى الحركي (Range of Motion)',
+        'تمارين التوازن والاتزان الحركي (Balance & Proprioception)',
+        'تمارين عضلات الجذع (Core Stability)',
+        'تمارين تصحيح القوام (Postural Correction)',
+        'برنامج التمارين المنزلية (Home Exercise Program)'
+      ]
+    };
+    const list = defaults[category] || [];
+    localStorage.setItem(key, JSON.stringify(list));
+    return list;
+  }
+
+  async addClinicalOption(category, name) {
+    const list = this.getClinicalOptions(category);
+    if (!list.includes(name)) {
+      list.push(name);
+      const key = (this.isTraining ? 'pc_sb_opt_' : 'pc_opt_') + category;
+      localStorage.setItem(key, JSON.stringify(list));
+    }
+    return list;
+  }
+
+  async deleteClinicalOption(category, name) {
+    let list = this.getClinicalOptions(category);
+    list = list.filter(item => item !== name);
+    const key = (this.isTraining ? 'pc_sb_opt_' : 'pc_opt_') + category;
+    localStorage.setItem(key, JSON.stringify(list));
+    return list;
+  }
 }
 
 export const db = new DatabaseService();

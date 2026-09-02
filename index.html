@@ -291,14 +291,14 @@
 
         <!-- Patient Demographics Header Card (Clean & Responsive) -->
         <div class="card" style="background: #ffffff; border: 1.5px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm);">
-          <!-- Line 1: Patient Name & Billing Badge -->
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 12px; flex-wrap: nowrap;">
-            <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              <i class="fa-solid fa-user-injured" style="color: var(--primary); font-size: 1.1rem; flex-shrink: 0;"></i>
-              <span id="sheet-patient-name" style="overflow: hidden; text-overflow: ellipsis;">اسم المريض</span>
+          <!-- Line 1 & 2: Patient Name and Company Badge Below It -->
+          <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 12px;">
+            <div style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <i class="fa-solid fa-user-injured" style="color: var(--primary); font-size: 1.15rem; flex-shrink: 0;"></i>
+              <span id="sheet-patient-name">اسم المريض</span>
             </div>
-            <div id="sheet-patient-billing-badge" style="flex-shrink: 0;">
-              <!-- Populated by JS -->
+            <div id="sheet-patient-billing-badge" style="display: flex; align-items: center;">
+              <!-- Populated by JS below name -->
             </div>
           </div>
 
@@ -349,8 +349,16 @@
 
           <!-- 2. Modalities (الأجهزة الفيزيائية) -->
           <div class="card">
-            <div class="card-header">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
               <span class="card-title"><i class="fa-solid fa-bolt-lightning"></i> 2. الأجهزة والوسائل الفيزيائية (Physical Modalities)</span>
+              <div class="admin-only" style="display: flex; gap: 4px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="patientsManager.openAddOptionModal('modality')" style="padding: 3px 8px; font-size: 0.74rem; border-color: var(--primary); color: var(--primary); font-weight: 700;">
+                  <i class="fa-solid fa-plus"></i> إضافة جهاز
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="patientsManager.openDeleteOptionModal('modality')" style="padding: 3px 8px; font-size: 0.74rem; border-color: var(--danger); color: var(--danger); font-weight: 700;">
+                  <i class="fa-solid fa-trash-can"></i> حذف
+                </button>
+              </div>
             </div>
             <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px;">اضغط لاختيار الأجهزة والوسائل المقررة في جلسة المريض:</p>
             <div class="body-parts-chips" id="sheet-modalities-container">
@@ -364,16 +372,21 @@
               <button type="button" class="chip-choice sheet-chip" data-group="modality" data-val="أشعة تحت الحمراء (Infrared)"><i class="fa-solid fa-sun"></i> أشعة تحت الحمراء</button>
               <button type="button" class="chip-choice sheet-chip" data-group="modality" data-val="كؤوس هواء (Cupping)"><i class="fa-solid fa-circle-dot"></i> كؤوس هواء</button>
             </div>
-            <div class="form-group" style="margin-top: 10px;">
-              <label for="sheet-custom-modalities">أجهزة أو وسائل إضافية (اختياري)</label>
-              <input type="text" id="sheet-custom-modalities" class="form-control" placeholder="أي أجهزة فيزيائية أخرى مستخدمة مع الحالة">
-            </div>
+
           </div>
 
           <!-- 3. Procedures & Manual Therapy -->
           <div class="card">
-            <div class="card-header">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
               <span class="card-title"><i class="fa-solid fa-hand-holding-hand"></i> 3. الإجراءات والعلاج اليدوي (Procedures & Manual Therapy)</span>
+              <div class="admin-only" style="display: flex; gap: 4px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="patientsManager.openAddOptionModal('procedure')" style="padding: 3px 8px; font-size: 0.74rem; border-color: var(--primary); color: var(--primary); font-weight: 700;">
+                  <i class="fa-solid fa-plus"></i> إضافة إجراء
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="patientsManager.openDeleteOptionModal('procedure')" style="padding: 3px 8px; font-size: 0.74rem; border-color: var(--danger); color: var(--danger); font-weight: 700;">
+                  <i class="fa-solid fa-trash-can"></i> حذف
+                </button>
+              </div>
             </div>
             <div class="body-parts-chips" id="sheet-procedures-container">
               <button type="button" class="chip-choice sheet-chip" data-group="procedure" data-val="تحريك المفاصل (Joint Mobilization)"><i class="fa-solid fa-bone"></i> تحريك مفاصل (Mobilization)</button>
@@ -383,16 +396,21 @@
               <button type="button" class="chip-choice sheet-chip" data-group="procedure" data-val="الإبر الجافة (Dry Needling)"><i class="fa-solid fa-syringe"></i> إبر جافة (Dry Needling)</button>
               <button type="button" class="chip-choice sheet-chip" data-group="procedure" data-val="الأشرطة اللاصقة الحركية (Kinesio Taping)"><i class="fa-solid fa-tape"></i> أشرطة لاصقة (Taping)</button>
             </div>
-            <div class="form-group" style="margin-top: 10px;">
-              <label for="sheet-custom-procedures">إجراءات علاج يدوي أخرى (اختياري)</label>
-              <input type="text" id="sheet-custom-procedures" class="form-control" placeholder="أي تقنيات علاج يدوي أخرى">
-            </div>
+
           </div>
 
           <!-- 4. Therapeutic Exercises -->
           <div class="card">
-            <div class="card-header">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
               <span class="card-title"><i class="fa-solid fa-person-running"></i> 4. التمارين العلاجية الموصوفة (Therapeutic Exercises)</span>
+              <div class="admin-only" style="display: flex; gap: 4px;">
+                <button type="button" class="btn btn-outline btn-sm" onclick="patientsManager.openAddOptionModal('exercise')" style="padding: 3px 8px; font-size: 0.74rem; border-color: var(--primary); color: var(--primary); font-weight: 700;">
+                  <i class="fa-solid fa-plus"></i> إضافة تمرين
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="patientsManager.openDeleteOptionModal('exercise')" style="padding: 3px 8px; font-size: 0.74rem; border-color: var(--danger); color: var(--danger); font-weight: 700;">
+                  <i class="fa-solid fa-trash-can"></i> حذف
+                </button>
+              </div>
             </div>
             <div class="body-parts-chips" id="sheet-exercises-container">
               <button type="button" class="chip-choice sheet-chip" data-group="exercise" data-val="تمارين التقوية العضلية (Strengthening)"><i class="fa-solid fa-dumbbell"></i> تمارين تقوية عضلية</button>
@@ -419,7 +437,7 @@
                 <input type="text" id="sheet-sessions-count" class="form-control" placeholder="مثال: 12 جلسة (بمعدل 3 جلسات أسبوعياً)">
               </div>
               <div class="form-group">
-                <label for="sheet-doctor-notes">ملاحظات الطبيب المعالج ومتابعة الحالة</label>
+                <label for="sheet-doctor-notes">ملاحظات الطبيب المعالج والخطة (أي وسائل أو تمارين مخصصة إضافية للحالة تُكتب هنا) *</label>
                 <textarea id="sheet-doctor-notes" class="form-control" rows="3" placeholder="ملاحظات سريرية، محاذير طبية، استجابة المريض للجلسات السابقة..."></textarea>
               </div>
             </div>
@@ -1337,6 +1355,32 @@
           <i class="fa-solid fa-check"></i> اختيار هذا اليوم
         </button>
       </div>
+    </div>
+  </div>
+
+    <!-- Modal: Add New Clinical Option (Admin Only) -->
+  <div class="modal-backdrop" id="modal-add-clinical-option" style="z-index: 225;">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 id="modal-opt-title"><i class="fa-solid fa-circle-plus"></i> إضافة زر جديد</h3>
+        <button class="modal-close" onclick="app.closeModal('modal-add-clinical-option')">&times;</button>
+      </div>
+      <form id="form-add-clinical-option" onsubmit="patientsManager.handleSaveNewOption(event)">
+        <input type="hidden" id="opt-target-category" value="">
+        <div class="modal-body">
+          <div class="form-group">
+            <label id="opt-input-label">اسم الزر الجديد *</label>
+            <input type="text" id="opt-new-name" class="form-control" required placeholder="اكتب الاسم...">
+            <small style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+              سيظهر هذا الزر بشكل دائم في شيتات العلاج الطبيعي لجميع أطباء المركز.
+            </small>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="app.closeModal('modal-add-clinical-option')">إلغاء</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> إضافة للقائمة</button>
+        </div>
+      </form>
     </div>
   </div>
 
