@@ -1,33 +1,20 @@
 // ========================================================
-// PhysioCare - Unified Database Module (Cloud Firestore + LocalStorage)
+// ASCPT - Unified Database Module (Cloud Firestore + LocalStorage)
 // ========================================================
 
-import { isFirebaseConfigured, firebaseConfig } from './firebase-config.js';
-
-let firestoreInstance = null;
-let firestoreMethods = null;
-
-// تهيئة Firebase Firestore إذا تم وضع المفاتيح
-if (isFirebaseConfigured) {
-  try {
-    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const fstore = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    
-    const fbApp = initializeApp(firebaseConfig);
-    firestoreInstance = fstore.getFirestore(fbApp);
-    firestoreMethods = fstore;
-    console.log('Firebase Cloud Firestore initialized successfully.');
-  } catch (err) {
-    console.warn('Failed to load Firebase modules, falling back to local database:', err);
-  }
-}
+import { fbFirestore, isFirebaseConfigured } from './firebase-config.js';
 
 class DatabaseService {
   constructor() {
-    this.isFirestore = Boolean(firestoreInstance && firestoreMethods);
-    if (!this.isFirestore) {
-      this.initLocalStorage();
-    }
+    this.initLocalStorage();
+  }
+
+  get firestore() {
+    return fbFirestore;
+  }
+
+  get isCloud() {
+    return Boolean(isFirebaseConfigured && this.firestore);
   }
 
   initLocalStorage() {
@@ -53,7 +40,6 @@ class DatabaseService {
     }
   }
 
-  // مسح البيانات التجريبية بالكامل والبدء بسجل نظيف
   clearDemoData() {
     localStorage.setItem('pc_patients', JSON.stringify([]));
     localStorage.setItem('pc_sessions', JSON.stringify([]));
@@ -63,13 +49,12 @@ class DatabaseService {
 
   // =================== PATIENTS ===================
   async getPatients() {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, getDocs, query, orderBy } = firestoreMethods;
-        const snap = await getDocs(collection(firestoreInstance, 'patients'));
+        const snap = await this.firestore.collection('patients').get();
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
-        console.error('Firestore getPatients error:', err);
+        console.warn('Cloud getPatients failed, using local storage:', err);
       }
     }
     const raw = localStorage.getItem('pc_patients');
@@ -77,22 +62,20 @@ class DatabaseService {
   }
 
   async savePatient(patientData, currentUser) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, addDoc, doc, updateDoc } = firestoreMethods;
         if (patientData.id) {
-          const docRef = doc(firestoreInstance, 'patients', patientData.id);
           const { id, ...dataToUpdate } = patientData;
-          await updateDoc(docRef, {
+          await this.firestore.collection('patients').doc(id).update({
             ...dataToUpdate,
             lastUpdatedAt: new Date().toISOString(),
             lastUpdatedBy: currentUser?.name || 'مستخدم'
           });
           return 'updated';
         } else {
-          const { id, ...newPatientData } = patientData;
-          await addDoc(collection(firestoreInstance, 'patients'), {
-            ...newPatientData,
+          const { id, ...newData } = patientData;
+          await this.firestore.collection('patients').add({
+            ...newData,
             createdAt: new Date().toISOString(),
             createdBy: currentUser?.name || 'مستخدم',
             lastUpdatedBy: currentUser?.name || 'مستخدم'
@@ -100,11 +83,10 @@ class DatabaseService {
           return 'created';
         }
       } catch (err) {
-        console.error('Firestore savePatient error:', err);
+        console.warn('Cloud savePatient failed, saving locally:', err);
       }
     }
 
-    // LocalStorage Fallback
     const patients = await this.getPatients();
     let isEdit = false;
 
@@ -135,13 +117,12 @@ class DatabaseService {
   }
 
   async deletePatient(patientId) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { doc, deleteDoc } = firestoreMethods;
-        await deleteDoc(doc(firestoreInstance, 'patients', patientId));
+        await this.firestore.collection('patients').doc(patientId).delete();
         return true;
       } catch (err) {
-        console.error('Firestore deletePatient error:', err);
+        console.warn('Cloud deletePatient failed, deleting locally:', err);
       }
     }
 
@@ -153,17 +134,16 @@ class DatabaseService {
 
   // =================== SESSIONS ===================
   async getSessions(filterDate = null) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, getDocs, query, where } = firestoreMethods;
-        let q = collection(firestoreInstance, 'sessions');
+        let ref = this.firestore.collection('sessions');
         if (filterDate) {
-          q = query(q, where('date', '==', filterDate));
+          ref = ref.where('date', '==', filterDate);
         }
-        const snap = await getDocs(q);
+        const snap = await ref.get();
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
-        console.error('Firestore getSessions error:', err);
+        console.warn('Cloud getSessions failed, using local storage:', err);
       }
     }
 
@@ -176,18 +156,17 @@ class DatabaseService {
   }
 
   async saveSession(sessionData, currentUser) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, addDoc } = firestoreMethods;
         const newSession = {
           ...sessionData,
           recordedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
           recordedBy: currentUser?.name || 'مستخدم'
         };
-        const docRef = await addDoc(collection(firestoreInstance, 'sessions'), newSession);
+        const docRef = await this.firestore.collection('sessions').add(newSession);
         return { id: docRef.id, ...newSession };
       } catch (err) {
-        console.error('Firestore saveSession error:', err);
+        console.warn('Cloud saveSession failed, saving locally:', err);
       }
     }
 
@@ -204,13 +183,12 @@ class DatabaseService {
   }
 
   async deleteSession(sessionId) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { doc, deleteDoc } = firestoreMethods;
-        await deleteDoc(doc(firestoreInstance, 'sessions', sessionId));
+        await this.firestore.collection('sessions').doc(sessionId).delete();
         return true;
       } catch (err) {
-        console.error('Firestore deleteSession error:', err);
+        console.warn('Cloud deleteSession failed, deleting locally:', err);
       }
     }
 
@@ -222,17 +200,16 @@ class DatabaseService {
 
   // =================== EXPENSES ===================
   async getExpenses(filterDate = null) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, getDocs, query, where } = firestoreMethods;
-        let q = collection(firestoreInstance, 'expenses');
+        let ref = this.firestore.collection('expenses');
         if (filterDate) {
-          q = query(q, where('date', '==', filterDate));
+          ref = ref.where('date', '==', filterDate);
         }
-        const snap = await getDocs(q);
+        const snap = await ref.get();
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
-        console.error('Firestore getExpenses error:', err);
+        console.warn('Cloud getExpenses failed, using local storage:', err);
       }
     }
 
@@ -245,18 +222,17 @@ class DatabaseService {
   }
 
   async saveExpense(expenseData, currentUser) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, addDoc } = firestoreMethods;
         const newExp = {
           ...expenseData,
           time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
           recordedBy: currentUser?.name || 'مستخدم'
         };
-        const docRef = await addDoc(collection(firestoreInstance, 'expenses'), newExp);
+        const docRef = await this.firestore.collection('expenses').add(newExp);
         return { id: docRef.id, ...newExp };
       } catch (err) {
-        console.error('Firestore saveExpense error:', err);
+        console.warn('Cloud saveExpense failed, saving locally:', err);
       }
     }
 
@@ -274,13 +250,14 @@ class DatabaseService {
 
   // =================== USERS & ROLES ===================
   async getUsers() {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, getDocs } = firestoreMethods;
-        const snap = await getDocs(collection(firestoreInstance, 'users'));
-        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const snap = await this.firestore.collection('users').get();
+        if (!snap.empty) {
+          return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
       } catch (err) {
-        console.error('Firestore getUsers error:', err);
+        console.warn('Cloud getUsers failed, using local storage:', err);
       }
     }
 
@@ -289,34 +266,29 @@ class DatabaseService {
   }
 
   async saveUser(userData) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, addDoc } = firestoreMethods;
-        const docRef = await addDoc(collection(firestoreInstance, 'users'), userData);
+        const docRef = await this.firestore.collection('users').add(userData);
         return { id: docRef.id, ...userData };
       } catch (err) {
-        console.error('Firestore saveUser error:', err);
+        console.warn('Cloud saveUser failed, saving locally:', err);
       }
     }
 
     const users = await this.getUsers();
-    const newUser = {
-      ...userData,
-      id: 'u-' + Date.now()
-    };
+    const newUser = { ...userData, id: 'u-' + Date.now() };
     users.push(newUser);
     localStorage.setItem('pc_users', JSON.stringify(users));
     return newUser;
   }
 
   async deleteUser(userId) {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { doc, deleteDoc } = firestoreMethods;
-        await deleteDoc(doc(firestoreInstance, 'users', userId));
+        await this.firestore.collection('users').doc(userId).delete();
         return true;
       } catch (err) {
-        console.error('Firestore deleteUser error:', err);
+        console.warn('Cloud deleteUser failed, deleting locally:', err);
       }
     }
 
@@ -328,14 +300,12 @@ class DatabaseService {
 
   // =================== AUDIT LOGS ===================
   async getAuditLogs() {
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, getDocs } = firestoreMethods;
-        const snap = await getDocs(collection(firestoreInstance, 'audit_logs'));
-        const logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return logs.sort((a, b) => (b.timestampRaw || 0) - (a.timestampRaw || 0));
+        const snap = await this.firestore.collection('audit_logs').orderBy('timestampRaw', 'desc').get();
+        return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
-        console.error('Firestore getAuditLogs error:', err);
+        console.warn('Cloud getAuditLogs failed, using local storage:', err);
       }
     }
 
@@ -353,13 +323,12 @@ class DatabaseService {
       timestampRaw: Date.now()
     };
 
-    if (this.isFirestore) {
+    if (this.isCloud) {
       try {
-        const { collection, addDoc } = firestoreMethods;
-        await addDoc(collection(firestoreInstance, 'audit_logs'), newLog);
+        await this.firestore.collection('audit_logs').add(newLog);
         return;
       } catch (err) {
-        console.error('Firestore logAudit error:', err);
+        console.warn('Cloud logAudit failed, saving locally:', err);
       }
     }
 

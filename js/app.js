@@ -1,5 +1,5 @@
 // ========================================================
-// PhysioCare - Main Application Coordinator
+// ASCPT - Main Application Coordinator
 // ========================================================
 
 import { PWAManager } from './pwa.js';
@@ -15,13 +15,27 @@ class App {
   constructor() {
     this.currentView = 'dashboard';
     this.dialogResolve = null;
+
+    // ربط مبكر وفوري لضمان عمل كافة الأزرار بدون أي تأخير
+    window.app = this;
+    window.auth = auth;
+    this.patientsManager = new PatientsManager(this);
+    this.sessionsManager = new SessionsManager(this);
+    this.financeManager = new FinanceManager(this);
+    this.exportManager = new ExportManager(this, this.financeManager);
+    this.auditManager = new AuditAndAdminManager(this);
+
+    window.patientsManager = this.patientsManager;
+    window.sessionsManager = this.sessionsManager;
+    window.financeManager = this.financeManager;
+    window.auditManager = this.auditManager;
   }
 
   async init() {
-    // 1. تفعيل الـ PWA
+    // 1. تفعيل PWA
     PWAManager.init();
 
-    // 2. ضبط عرض التاريخ في لوحة المتابعة
+    // 2. ضبط عرض التاريخ
     const dateDisplay = document.getElementById('dashboard-date-display');
     if (dateDisplay) {
       const today = new Date();
@@ -33,37 +47,24 @@ class App {
       });
     }
 
-    // 3. تهيئة مديري الوحدات
-    this.patientsManager = new PatientsManager(this);
-    this.sessionsManager = new SessionsManager(this);
-    this.financeManager = new FinanceManager(this);
-    this.exportManager = new ExportManager(this, this.financeManager);
-    this.auditManager = new AuditAndAdminManager(this);
-
-    // ربط المديرين بنافذة المتصفح لتعمل الأزرار الداخلية
-    window.app = this;
-    window.auth = auth;
-    window.patientsManager = this.patientsManager;
-    window.sessionsManager = this.sessionsManager;
-    window.financeManager = this.financeManager;
-    window.auditManager = this.auditManager;
-
-    // 4. ربط أحداث التنقل والحوارات
+    // 3. ربط أحداث التنقل والحوارات
     this.bindNavigation();
     this.bindModalsAndAuth();
     this.bindCustomDialog();
 
-    // 5. تهيئة نظام تسجيل الدخول والمصادقة
+    // 4. تهيئة المصادقة
     await auth.init(async (user) => {
       await this.refreshAll();
     });
 
-    // 6. تحميل البيانات
+    // 5. تحميل الوحدات
     await this.patientsManager.init();
     await this.sessionsManager.init();
     await this.financeManager.init();
     this.exportManager.init();
     await this.auditManager.init();
+
+    console.log('ASCPT Application fully initialized and ready.');
   }
 
   bindNavigation() {
@@ -120,7 +121,6 @@ class App {
   }
 
   bindModalsAndAuth() {
-    // Form Login Submit
     const formLogin = document.getElementById('form-login');
     if (formLogin) {
       formLogin.addEventListener('submit', async (e) => {
@@ -139,7 +139,6 @@ class App {
       });
     }
 
-    // Close modal when clicking on backdrop
     document.querySelectorAll('.modal-backdrop').forEach(modal => {
       modal.addEventListener('click', (e) => {
         if (e.target === modal && modal.id !== 'modal-auth' && modal.id !== 'modal-custom-dialog') {
@@ -265,8 +264,16 @@ class App {
   }
 }
 
-// تشغيل التطبيق بمجرد اكتمال تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-  const app = new App();
-  app.init();
-});
+// تشغيل فوري وآمن يضمن عمل التطبيق مهما كانت حالة التحميل
+function startApp() {
+  if (window.__ascpt_app_started) return;
+  window.__ascpt_app_started = true;
+  const appInstance = new App();
+  appInstance.init();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
+}

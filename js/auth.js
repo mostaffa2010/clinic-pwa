@@ -1,35 +1,28 @@
 // ========================================================
-// PhysioCare - Authentication & Session Management (Firebase + Local)
+// ASCPT - Authentication & Session Management (Firebase + Local)
 // ========================================================
 
-import { isFirebaseConfigured, firebaseConfig } from './firebase-config.js';
+import { fbAuth, isFirebaseConfigured } from './firebase-config.js';
 import { db } from './db.js';
 import { RolesManager } from './roles.js';
-
-let firebaseAuthInstance = null;
-let firebaseAuthMethods = null;
-
-if (isFirebaseConfigured) {
-  try {
-    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-    const authModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-    const fbApp = initializeApp(firebaseConfig);
-    firebaseAuthInstance = authModule.getAuth(fbApp);
-    firebaseAuthMethods = authModule;
-    console.log('Firebase Authentication initialized successfully.');
-  } catch (err) {
-    console.warn('Failed to load Firebase Auth, falling back to local auth:', err);
-  }
-}
 
 class AuthService {
   constructor() {
     this.currentUser = null;
-    this.isFirebaseAuth = Boolean(firebaseAuthInstance && firebaseAuthMethods);
+  }
+
+  get auth() {
+    return fbAuth;
+  }
+
+  get isCloud() {
+    return Boolean(isFirebaseConfigured && this.auth);
   }
 
   async init(onUserChanged) {
     this.onUserChanged = onUserChanged;
+
+    // فحص المستخدم المحفوظ محلياً أولاً للسرعة
     const saved = localStorage.getItem('pc_current_user');
     if (saved) {
       this.currentUser = JSON.parse(saved);
@@ -37,6 +30,26 @@ class AuthService {
       if (this.onUserChanged) this.onUserChanged(this.currentUser);
     } else {
       this.showLoginModal();
+    }
+
+    // الاستماع لحالة الدخول في Firebase
+    if (this.isCloud) {
+      this.auth.onAuthStateChanged(async (user) => {
+        if (user && !this.currentUser) {
+          const users = await db.getUsers();
+          let matched = users.find(u => u.email.toLowerCase() === user.email.toLowerCase());
+          this.currentUser = {
+            id: user.uid,
+            name: matched?.name || user.displayName || 'د. مصطفى محمود (مدير المركز)',
+            email: user.email,
+            role: matched?.role || 'admin'
+          };
+          localStorage.setItem('pc_current_user', JSON.stringify(this.currentUser));
+          this.hideLoginModal();
+          this.updateUI();
+          if (this.onUserChanged) this.onUserChanged(this.currentUser);
+        }
+      });
     }
   }
 
@@ -57,21 +70,19 @@ class AuthService {
   async login(email, password) {
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. إذا كان Firebase مفعل
-    if (this.isFirebaseAuth) {
+    // 1. تجربة الدخول السحابي أولاً إن أمكن
+    if (this.isCloud) {
       try {
-        const { signInWithEmailAndPassword } = firebaseAuthMethods;
-        const cred = await signInWithEmailAndPassword(firebaseAuthInstance, cleanEmail, password);
-        
-        // جلب دور المستخدم من قاعدة البيانات
+        const cred = await this.auth.signInWithEmailAndPassword(cleanEmail, password);
+        const fbUser = cred.user;
+
         const users = await db.getUsers();
         let matchedUser = users.find(u => u.email.toLowerCase() === cleanEmail);
 
         if (!matchedUser) {
-          // إذا كان أول مستخدم يدخل للنظام نعتبره مدير المركز
           matchedUser = {
-            id: cred.user.uid,
-            name: cred.user.displayName || 'مدير المركز',
+            id: fbUser.uid,
+            name: fbUser.displayName || 'د. مصطفى محمود (مدير المركز)',
             email: cleanEmail,
             role: 'admin'
           };
@@ -79,7 +90,7 @@ class AuthService {
         }
 
         this.currentUser = {
-          id: matchedUser.id || cred.user.uid,
+          id: matchedUser.id || fbUser.uid,
           name: matchedUser.name,
           email: cleanEmail,
           role: matchedUser.role || 'admin'
@@ -92,16 +103,11 @@ class AuthService {
         if (this.onUserChanged) this.onUserChanged(this.currentUser);
         return { success: true };
       } catch (fbErr) {
-        console.error('Firebase Auth Error:', fbErr);
-        let msg = 'فشل تسجيل الدخول عبر السحابة. تأكد من البريد وكلمة المرور.';
-        if (fbErr.code === 'auth/user-not-found' || fbErr.code === 'auth/wrong-password' || fbErr.code === 'auth/invalid-credential') {
-          msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-        }
-        return { success: false, message: msg };
+        console.warn('Firebase login notice, checking local users:', fbErr.message);
       }
     }
 
-    // 2. الوضع المحلي (Local fallback)
+    // 2. الدخول المحلي أو التجريبي
     const users = await db.getUsers();
     const user = users.find(u => u.email.toLowerCase() === cleanEmail && u.password === password);
     
@@ -125,29 +131,33 @@ class AuthService {
 
   async quickDemoLogin(role) {
     const users = await db.getUsers();
-    const user = users.find(u => u.role === role) || users[0];
-    if (user) {
-      this.currentUser = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      };
-      localStorage.setItem('pc_current_user', JSON.stringify(this.currentUser));
-      this.hideLoginModal();
-      this.updateUI();
-      await db.logAudit('دخول تجريبي', `تم الدخول بحساب ${user.name} (${RolesManager.getRoleLabel(user.role)})`, this.currentUser);
-      if (this.onUserChanged) this.onUserChanged(this.currentUser);
-    }
+    const user = users.find(u => u.role === role) || {
+      id: 'u-quick',
+      name: role === 'admin' ? 'د. مصطفى محمود' : (role === 'doctor' ? 'د. أحمد خليل' : 'أ. منار خالد'),
+      email: `${role}@ascpt.com`,
+      role: role
+    };
+
+    this.currentUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    };
+
+    localStorage.setItem('pc_current_user', JSON.stringify(this.currentUser));
+    this.hideLoginModal();
+    this.updateUI();
+    await db.logAudit('دخول تجريبي', `تم الدخول بحساب ${user.name} (${RolesManager.getRoleLabel(user.role)})`, this.currentUser);
+    if (this.onUserChanged) this.onUserChanged(this.currentUser);
   }
 
   async logout() {
-    if (this.isFirebaseAuth) {
+    if (this.isCloud) {
       try {
-        const { signOut } = firebaseAuthMethods;
-        await signOut(firebaseAuthInstance);
+        await this.auth.signOut();
       } catch (e) {
-        console.error('SignOut error:', e);
+        console.warn('SignOut error:', e);
       }
     }
 
