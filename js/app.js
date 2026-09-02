@@ -190,25 +190,9 @@ class App {
 
   // ================= Disable Pull-To-Refresh on Mobile =================
   disablePullToRefresh() {
-    let touchStartY = 0;
-    window.addEventListener('touchstart', (e) => {
-      if (e.touches && e.touches.length > 0) {
-        touchStartY = e.touches[0].clientY;
-      }
-    }, { passive: true });
-
-    window.addEventListener('touchmove', (e) => {
-      if (!e.touches || e.touches.length === 0) return;
-      const touchY = e.touches[0].clientY;
-      const touchDiff = touchY - touchStartY;
-      
-      // إذا كان المستخدم في قمة الصفحة ويسحب للأسفل، نمنع حركة إعادة التحميل
-      if (window.scrollY <= 0 && touchDiff > 0) {
-        if (e.cancelable) {
-          e.preventDefault();
-        }
-      }
-    }, { passive: false });
+    // منع سحب المتصفح عبر معايير CSS القياسية دون حظر لمسات iOS
+    document.documentElement.style.overscrollBehaviorY = 'none';
+    document.body.style.overscrollBehaviorY = 'none';
   }
 
   // ================= Hardware Back Button & Mobile Gestures =================

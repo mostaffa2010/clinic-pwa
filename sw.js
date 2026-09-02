@@ -1,8 +1,34 @@
-const CACHE_NAME = 'ascpt-cache-v15';
+const CACHE_NAME = 'ascpt-cache-v16';
 
-// Force immediate activation of new service worker
+const PRECACHE_ASSETS = [
+  './',
+  './index.html',
+  './manifest.json',
+  './css/style.css',
+  './css/print.css',
+  './js/app.js',
+  './js/firebase-config.js',
+  './js/db.js',
+  './js/auth.js',
+  './js/roles.js',
+  './js/patients.js',
+  './js/sessions.js',
+  './js/finance.js',
+  './js/export.js',
+  './js/audit.js',
+  './js/pwa.js',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
+];
+
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
+        console.log('Precache notice:', err);
+      });
+    }).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -19,25 +45,26 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Network-First Strategy: Fetch latest from server when online; use cache only when offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith('http')) return;
 
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
+          const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
+            try {
+              cache.put(event.request, clone);
+            } catch (e) {}
           });
         }
         return networkResponse;
       })
       .catch(() => {
-        // Fallback to cache when offline
-        return caches.match(event.request).then((cachedResponse) => {
-          return cachedResponse || caches.match('./index.html');
+        return caches.match(event.request).then((cached) => {
+          return cached || caches.match('./index.html') || caches.match('/');
         });
       })
   );

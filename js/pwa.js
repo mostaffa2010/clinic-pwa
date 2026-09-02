@@ -1,41 +1,21 @@
 // ========================================================
-// PhysioCare - PWA & Auto-Update Service Worker Manager
+// ASCPT - PWA & Service Worker Registration (iOS Safe)
 // ========================================================
 
 export class PWAManager {
   static init() {
-    // 1. تسجيل الـ Service Worker مع التحقق الفوري من التحديثات
+    // 1. تسجيل الـ Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
           .then((reg) => {
-            console.log('PhysioCare Service Worker Registered:', reg.scope);
-            // فحص التحديثات فورياً في كل مرة يفتح فيها التطبيق
-            reg.update();
-
-            reg.addEventListener('updatefound', () => {
-              const newWorker = reg.installing;
-              if (newWorker) {
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    console.log('New update available, applying changes...');
-                  }
-                });
-              }
-            });
+            console.log('ASCPT Service Worker Registered:', reg.scope);
+            // فحص وجود تحديثات بهدوء
+            reg.update().catch(() => {});
           })
           .catch((err) => {
-            console.log('Service Worker registration failed:', err);
+            console.log('Service Worker registration notice:', err);
           });
-
-        // إعادة تحميل التطبيق تلقائياً عند تفعيل النسخة الجديدة
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (!refreshing) {
-            refreshing = true;
-            window.location.reload();
-          }
-        });
       });
     }
 
@@ -56,7 +36,7 @@ export class PWAManager {
     // 3. دعم زر التثبيت المباشر للـ PWA
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
-      console.log('PWA ready to install.');
+      console.log('PWA install prompt ready.');
     });
   }
 }

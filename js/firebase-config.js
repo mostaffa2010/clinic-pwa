@@ -1,5 +1,5 @@
 // ========================================================
-// ASCPT - Firebase Configuration & Initialization
+// ASCPT - Firebase Configuration & Initialization (iOS Compatible)
 // ========================================================
 
 export const firebaseConfig = {
@@ -31,12 +31,16 @@ if (typeof window !== 'undefined' && window.firebase && isFirebaseConfigured) {
     fbFirestore = window.firebase.firestore();
     fbAuth = window.firebase.auth();
 
-    // Enable offline persistence for Firestore
-    fbFirestore.enablePersistence({ synchronizeTabs: true }).catch((err) => {
-      console.log('Persistence notice:', err.code);
-    });
+    // آمن ومتوافق مع وضع Standalone في متصفح Safari على الآيفون
+    try {
+      fbFirestore.enablePersistence().catch((err) => {
+        console.log('Persistence notice:', err.code);
+      });
+    } catch (e) {
+      console.log('Offline persistence not supported in this WebKit environment');
+    }
 
-    console.log('Firebase initialized successfully for project:', firebaseConfig.projectId);
+    console.log('Firebase initialized successfully for ASCPT.');
   } catch (err) {
     console.error('Firebase initialization error:', err);
   }
