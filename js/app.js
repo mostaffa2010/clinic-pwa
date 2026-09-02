@@ -246,6 +246,18 @@ class App {
     }
   }
 
+  async handleClearDemoData() {
+    const confirmed = await this.showConfirm(
+      'هل أنت متأكد من مسح جميع المرضى والجلسات والمصروفات الافتراضية القديمة للبدء بسجل حقيقي فارغ؟',
+      'تأكيد تنظيف البيانات'
+    );
+    if (confirmed) {
+      db.clearDemoData();
+      await this.refreshAll();
+      this.showToast('تم مسح البيانات الافتراضية بنجاح، السجل الآن نظيف وجاهز');
+    }
+  }
+
   async refreshAll() {
     if (this.patientsManager) await this.patientsManager.loadPatients();
     if (this.sessionsManager) await this.sessionsManager.loadTodaySessions();

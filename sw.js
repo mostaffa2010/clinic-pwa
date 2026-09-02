@@ -1,4 +1,4 @@
-const CACHE_NAME = 'physiocare-cache-v3';
+const CACHE_NAME = 'ascpt-cache-v1';
 
 // Force immediate activation of new service worker
 self.addEventListener('install', (event) => {

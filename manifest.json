@@ -1,7 +1,7 @@
 {
-  "name": "PhysioCare - إدارة عيادة العلاج الطبيعي",
-  "short_name": "PhysioCare",
-  "description": "تطبيق متكامل لإدارة عيادات ومراكز العلاج الطبيعي والحسابات والجلسات اليومية",
+  "name": "Alexandria Specialist Center for Physical Therapy (ASCPT)",
+  "short_name": "ASCPT",
+  "description": "تطبيق إدارة مركز الإسكندرية التخصصي للعلاج الطبيعي والتأهيل",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f8fafc",

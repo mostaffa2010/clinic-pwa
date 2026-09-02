@@ -90,7 +90,7 @@ export class ExportManager {
     XLSX.utils.book_append_sheet(wb, wsExpenses, 'المصروفات اليومية');
 
     // تحميل الملف على الموبايل أو اللابتوب
-    const filename = `تقرير_عيادة_العلاج_الطبيعي_${dateStr}.xlsx`;
+    const filename = `تقرير_ASCPT_اليومي_${dateStr}.xlsx`;
     XLSX.writeFile(wb, filename);
 
     this.app.showToast('تم تصدير ملف Excel بنجاح');

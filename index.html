@@ -7,14 +7,14 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>PhysioCare - إدارة عيادة العلاج الطبيعي</title>
+  <title>ASCPT - مركز الإسكندرية التخصصي للعلاج الطبيعي</title>
   
   <!-- PWA Meta -->
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#0284c7">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="PhysioCare">
+  <meta name="apple-mobile-web-app-title" content="ASCPT">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
 
   <!-- Google Fonts: Cairo -->
@@ -36,7 +36,8 @@
 
   <!-- Printable Clinic Report Header (Visible only when printing) -->
   <div class="print-header">
-    <h1><i class="fa-solid fa-hospital"></i> مركز فيزيو كير للعلاج الطبيعي والتأهيل</h1>
+    <h1><i class="fa-solid fa-hospital"></i> Alexandria Specialist Center for Physical Therapy (ASCPT)</h1>
+    <p style="font-size: 9pt; color: #475569; font-weight: bold;">مركز الإسكندرية التخصصي للعلاج الطبيعي والتأهيل</p>
     <p>تقرير إيرادات وحركات الجلسات اليومية</p>
     <p id="print-report-meta">التاريخ: 2026-09-02 | وقت الطباعة: 10:00 ص</p>
   </div>
@@ -45,7 +46,7 @@
   <header class="top-header no-print">
     <a href="#" class="brand-logo">
       <i class="fa-solid fa-notes-medical"></i>
-      <span>فيزيو كير</span>
+      <span>ASCPT</span>
     </a>
     <div style="display: flex; align-items: center; gap: 10px;">
       <div class="user-status-pill">
@@ -66,8 +67,8 @@
       <div class="brand-section">
         <i class="fa-solid fa-notes-medical" style="font-size: 1.8rem; color: var(--primary);"></i>
         <div>
-          <h2 style="font-size: 1.2rem; color: var(--primary); font-weight: 800;">فيزيو كير</h2>
-          <p style="font-size: 0.75rem; color: var(--text-muted);">إدارة العلاج الطبيعي</p>
+          <h2 style="font-size: 1.2rem; color: var(--primary); font-weight: 800;">ASCPT</h2>
+          <p style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">Alexandria Specialist Center</p>
         </div>
       </div>
 
@@ -598,6 +599,23 @@
             </table>
           </div>
         </div>
+              <!-- Reset Demo Data Card (Admin only) -->
+        <div class="card admin-only" style="margin-top: 20px; border-color: var(--warning); background-color: #fffbeb;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="font-weight: 800; color: #92400e; font-size: 0.95rem;">
+                <i class="fa-solid fa-broom"></i> تنظيف البيانات التجريبية
+              </div>
+              <div style="font-size: 0.8rem; color: #b45309; margin-top: 3px;">
+                مسح المرضى والجلسات والمصروفات التجريبية القديمة للبدء بسجل عيادة حقيقي ونظيف.
+              </div>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" style="border-color: #b45309; color: #92400e; font-weight: 700;" onclick="app.handleClearDemoData()">
+              <i class="fa-solid fa-trash-can"></i> مسح البيانات الافتراضية
+            </button>
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -742,7 +760,7 @@
       <form id="form-login">
         <div class="modal-body">
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">
-            قم بتسجيل الدخول بحسابك في مركز فيزيو كير للمتابعة بحسب صلاحياتك.
+            قم بتسجيل الدخول بحسابك في مركز الإسكندرية التخصصي للعلاج الطبيعي (ASCPT) للمتابعة بحسب صلاحياتك.
           </p>
 
           <div class="form-group" style="margin-bottom: 12px;">

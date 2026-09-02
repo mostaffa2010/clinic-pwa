@@ -1,26 +1,16 @@
 // ========================================================
-// PhysioCare - Firebase Configuration & Initialization
+// ASCPT - Firebase Configuration & Initialization
 // ========================================================
 
-/*
-  خطوات ربط Firebase:
-  1. ادخل على https://console.firebase.google.com
-  2. أنشئ مشروعاً جديداً وسَمّه مثلاً (physiocare-clinic).
-  3. اختر إضافة تطبيق ويب (Web App </>) وانسخ قيم firebaseConfig وضعها بالأسفل.
-  4. فعّل Authentication (اختر Email/Password).
-  5. فعّل Cloud Firestore (ابدأ في وضع Test Mode).
-*/
-
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCtimWkleez4489bN8Zd6t9mm8-tgcSHzA",
+  authDomain: "alex-center-pt.firebaseapp.com",
+  projectId: "alex-center-pt",
+  storageBucket: "alex-center-pt.firebasestorage.app",
+  messagingSenderId: "124623407564",
+  appId: "1:124623407564:web:198c3404d78231f1b53569"
 };
 
-// فحص ما إذا كان المستخدم قد وضع مفاتيح فايربيز الحقيقية أم لا
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey && 
   firebaseConfig.apiKey !== "YOUR_API_KEY" &&
