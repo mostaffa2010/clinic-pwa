@@ -1,5 +1,5 @@
 // ========================================================
-// PhysioCare - Patients Management Module
+// PhysioFlow - Patients Management Module
 // ========================================================
 
 import { db } from './db.js';
@@ -365,7 +365,7 @@ export class PatientsManager {
       exerciseDetails: document.getElementById('sheet-exercise-details').value.trim(),
       plannedSessions: document.getElementById('sheet-sessions-count').value.trim(),
       doctorNotes: document.getElementById('sheet-doctor-notes').value.trim(),
-      lastUpdated: new Date().toLocaleString('ar-EG'),
+      lastUpdated: new Date().toLocaleString('en-US'),
       updatedBy: currentUser?.name || 'الطبيب المعالج'
     };
 
@@ -397,8 +397,8 @@ export class PatientsManager {
     const sheet = p.clinicalSheet || {};
 
     // 1. Fill Printable Template
-    const now = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    const today = new Date().toLocaleDateString('ar-EG');
+    const now = new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
+    const today = new Date().toLocaleDateString('ar-EG-u-nu-latn');
     document.getElementById('print-sheet-meta').textContent = `تاريخ ووقت الطباعة: ${today} ${now}`;
 
     document.getElementById('p-print-name').textContent = p.name;

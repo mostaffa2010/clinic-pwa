@@ -33,6 +33,7 @@ export class FinanceManager {
     if (datePicker) {
       datePicker.addEventListener('change', (e) => {
         this.currentDate = e.target.value;
+        this.syncQuickDateButtons(this.currentDate);
         this.loadDailyReport();
       });
     }
@@ -73,13 +74,32 @@ export class FinanceManager {
     const datePicker = document.getElementById('finance-date-picker');
     if (datePicker) datePicker.value = this.currentDate;
 
-    // Toggle active class on quick date buttons
+    this.syncQuickDateButtons(this.currentDate);
+    this.loadDailyReport();
+  }
+
+  syncQuickDateButtons(dateStr) {
     const btnToday = document.getElementById('btn-quick-fin-today');
     const btnYest = document.getElementById('btn-quick-fin-yesterday');
-    if (btnToday) btnToday.classList.toggle('active', type === 'today');
-    if (btnYest) btnYest.classList.toggle('active', type === 'yesterday');
+    const today = new Date().toISOString().split('T')[0];
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yesterday = d.toISOString().split('T')[0];
 
-    this.loadDailyReport();
+    if (btnToday) {
+      if (dateStr === today) {
+        btnToday.classList.add('active');
+      } else {
+        btnToday.classList.remove('active');
+      }
+    }
+    if (btnYest) {
+      if (dateStr === yesterday) {
+        btnYest.classList.add('active');
+      } else {
+        btnYest.classList.remove('active');
+      }
+    }
   }
 
   async deleteExpense(expenseId) {
@@ -187,12 +207,12 @@ export class FinanceManager {
 
     // Update KPI UI
     document.getElementById('rep-total-patients').textContent = totalPatients;
-    document.getElementById('rep-total-cash').textContent = `${totalCash.toLocaleString('ar-EG')} ج.م`;
-    document.getElementById('rep-total-expenses').textContent = `${totalExpenses.toLocaleString('ar-EG')} ج.م`;
+    document.getElementById('rep-total-cash').textContent = `${totalCash.toLocaleString('en-US')} ج.م`;
+    document.getElementById('rep-total-expenses').textContent = `${totalExpenses.toLocaleString('en-US')} ج.م`;
     
     const netCashEl = document.getElementById('rep-net-cash');
     if (netCashEl) {
-      netCashEl.textContent = `${netCash.toLocaleString('ar-EG')} ج.م`;
+      netCashEl.textContent = `${netCash.toLocaleString('en-US')} ج.م`;
       netCashEl.style.color = netCash >= 0 ? 'var(--success)' : 'var(--danger)';
     }
 
@@ -231,13 +251,23 @@ export class FinanceManager {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 25px;">لا توجد حركات جلسات مسجلة في هذا التاريخ.</td></tr>`;
       } else {
         tbody.innerHTML = filteredSessions.map(s => {
-          const payBadge = s.payType === 'cash'
-            ? `<span class="badge badge-cash">نقدي</span>`
-            : `<span class="badge badge-direct">شركة</span>`;
-          
-          const contractLabel = s.payType === 'insurance'
-            ? (s.contractType === 'direct' ? 'مباشر' : 'غير مباشر')
-            : '-';
+          let payBadge = '';
+          if (s.payType === 'cash') {
+            payBadge = `<span class="badge badge-cash"><i class="fa-solid fa-money-bill"></i> نقدي</span>`;
+          } else if (s.contractType === 'direct') {
+            payBadge = `<span class="badge badge-direct"><i class="fa-solid fa-file-contract"></i> ${s.insuranceName || 'شركة'} (مباشر)</span>`;
+          } else {
+            payBadge = `<span class="badge badge-indirect"><i class="fa-solid fa-handshake"></i> ${s.insuranceName || 'شركة'} (غير مباشر)</span>`;
+          }
+
+          let contractLabel = '-';
+          if (s.payType === 'insurance') {
+            if (s.contractType === 'direct') {
+              contractLabel = `<span class="badge badge-direct"><i class="fa-solid fa-file-contract"></i> مباشر</span>`;
+            } else {
+              contractLabel = `<span class="badge badge-indirect"><i class="fa-solid fa-handshake"></i> غير مباشر</span>`;
+            }
+          }
 
           const parts = Array.isArray(s.bodyParts) ? s.bodyParts.join('، ') : (s.bodyParts || '');
           const count = s.bodyPartsCount || (Array.isArray(s.bodyParts) ? s.bodyParts.length : 1);
@@ -301,9 +331,9 @@ export class FinanceManager {
     const dashExpenses = document.getElementById('stat-expenses-today');
 
     if (dashPatients) dashPatients.textContent = allSessions.length;
-    if (dashCash) dashCash.textContent = `${totalCash.toLocaleString('ar-EG')} ج.م`;
+    if (dashCash) dashCash.textContent = `${totalCash.toLocaleString('en-US')} ج.م`;
     if (dashInsurance) dashInsurance.textContent = `${allSessions.filter(s => s.payType === 'insurance').length} حالات`;
-    if (dashExpenses) dashExpenses.textContent = `${totalExpenses.toLocaleString('ar-EG')} ج.م`;
+    if (dashExpenses) dashExpenses.textContent = `${totalExpenses.toLocaleString('en-US')} ج.م`;
 
     const dashTbody = document.querySelector('#dashboard-recent-table tbody');
     if (dashTbody) {
@@ -315,7 +345,13 @@ export class FinanceManager {
           <tr>
             <td style="font-weight: 700;">${s.patientName}</td>
             <td>${s.doctor}</td>
-            <td>${s.payType === 'cash' ? 'نقدي' : (s.insuranceName || 'شركة')}</td>
+            <td>
+              ${s.payType === 'cash' 
+                ? '<span class="badge badge-cash"><i class="fa-solid fa-money-bill"></i> نقدي</span>' 
+                : (s.contractType === 'direct' 
+                  ? `<span class="badge badge-direct"><i class="fa-solid fa-file-contract"></i> ${s.insuranceName || 'تأمين'}</span>` 
+                  : `<span class="badge badge-indirect"><i class="fa-solid fa-handshake"></i> ${s.insuranceName || 'تأمين'}</span>`)}
+            </td>
             <td>${s.bodyPartsCount || 1} أعضاء</td>
             <td style="font-weight: 700; color: var(--success);">${s.amountPaid} ج.م</td>
             <td style="font-size: 0.8rem; color: var(--text-muted);">${s.recordedAt}</td>
@@ -338,12 +374,12 @@ export class FinanceManager {
 
     // Update KPI UI
     document.getElementById('rep-total-patients').textContent = totalPatients;
-    document.getElementById('rep-total-cash').textContent = `${totalCash.toLocaleString('ar-EG')} ج.م`;
-    document.getElementById('rep-total-expenses').textContent = `${totalExpenses.toLocaleString('ar-EG')} ج.م`;
+    document.getElementById('rep-total-cash').textContent = `${totalCash.toLocaleString('en-US')} ج.م`;
+    document.getElementById('rep-total-expenses').textContent = `${totalExpenses.toLocaleString('en-US')} ج.م`;
     
     const netCashEl = document.getElementById('rep-net-cash');
     if (netCashEl) {
-      netCashEl.textContent = `${netCash.toLocaleString('ar-EG')} ج.م`;
+      netCashEl.textContent = `${netCash.toLocaleString('en-US')} ج.م`;
       netCashEl.style.color = netCash >= 0 ? 'var(--success)' : 'var(--danger)';
     }
 
@@ -406,7 +442,7 @@ export class FinanceManager {
           return `
             <tr>
               <td style="font-weight: 700;">${item.name}</td>
-              <td><span class="badge ${item.type.includes('مباشر') ? 'badge-direct' : (item.type.includes('نقدي') ? 'badge-cash' : 'badge-indirect')}">${item.type}</span></td>
+              <td><span class="badge ${item.type.includes('نقدي') ? 'badge-cash' : (item.type.includes('غير مباشر') ? 'badge-indirect' : 'badge-direct')}"><i class="fa-solid ${item.type.includes('نقدي') ? 'fa-money-bill' : (item.type.includes('غير مباشر') ? 'fa-handshake' : 'fa-file-contract')}"></i> ${item.type}</span></td>
               <td style="font-weight: 800; color: var(--primary); font-size: 0.95rem;">${item.count} حالة</td>
               <td style="font-weight: 700;">${pct}%</td>
             </tr>

@@ -40,7 +40,7 @@ class App {
     const dateDisplay = document.getElementById('dashboard-date-display');
     if (dateDisplay) {
       const today = new Date();
-      dateDisplay.textContent = today.toLocaleDateString('ar-EG', {
+      dateDisplay.textContent = today.toLocaleDateString('ar-EG-u-nu-latn', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -323,7 +323,7 @@ class App {
     if (subEl && this.calendarSelectedDate) {
       const [sy, sm, sd] = this.calendarSelectedDate.split('-').map(Number);
       const selObj = new Date(sy, sm - 1, sd);
-      subEl.textContent = selObj.toLocaleDateString('ar-EG', {
+      subEl.textContent = selObj.toLocaleDateString('ar-EG-u-nu-latn', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',

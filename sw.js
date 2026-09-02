@@ -1,5 +1,5 @@
 // sw.js - Service Worker لتطبيق ASCPT (نفس معمارية لَو تِعرَف المتوافقة مع آيفون)
-const CACHE_NAME = 'ascpt-online-v2';
+const CACHE_NAME = 'ascpt-online-v6';
 
 self.addEventListener('install', () => self.skipWaiting());
 

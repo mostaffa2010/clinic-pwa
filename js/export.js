@@ -96,7 +96,7 @@ export class ExportManager {
 
       // ب. Fallback CSV بترميز عربي
       let csv = '\uFEFF';
-      csv += `مركز الإسكندرية التخصصي للعلاج الطبيعي (ASCPT) - التقرير اليومي: ${dateStr}\r\n\r\n`;
+      csv += `نظام ASCPT لإدارة مراكز العلاج الطبيعي - التقرير اليومي: ${dateStr}\r\n\r\n`;
       csv += `إجمالي المرضى: ${allSessions.length}, إيرادات: ${totalCash} ج.م, مصروفات: ${totalExp} ج.م, صافي الدرج: ${netCash} ج.م\r\n\r\n`;
       csv += 'م,اسم المريض,الطبيب المعالج,نظام الحساب,شركة التأمين,نوع التعاقد,الأعضاء المعالجة,المبلغ المسدد (ج.م),المسؤول,الوقت\r\n';
 
@@ -207,7 +207,7 @@ export class ExportManager {
 
       // Fallback CSV
       let csv = '\uFEFF';
-      csv += `مركز الإسكندرية التخصصي للعلاج الطبيعي (ASCPT) - التقرير الشهري: ${monthStr}\r\n\r\n`;
+      csv += `نظام ASCPT لإدارة مراكز العلاج الطبيعي - التقرير الشهري: ${monthStr}\r\n\r\n`;
       csv += `إجمالي مرضى الشهر,${totalPatients},نقدي,${cashCount},تأمين,${insCount},إيرادات,${totalCash} ج.م,مصروفات,${totalExp} ج.م,صافي الأرباح,${netCash} ج.م\r\n\r\n`;
       csv += 'إحصائية الأطباء الشهرية:\r\nم,الطبيب المعالج,مرضى نقدي,مرضى شركات تأمين,إجمالي الحالات,النسبة\r\n';
       doctorsData.forEach(d => {
@@ -243,11 +243,11 @@ export class ExportManager {
       const meta = this.financeManager.getDataForExport();
       const metaEl = document.getElementById('print-report-meta');
       const subEl = document.getElementById('print-report-subtitle');
-      const now = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      const now = new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
 
       if (meta.mode === 'monthly') {
         if (subEl) subEl.textContent = `التقرير المالي والإحصائي الشهري - شهر (${meta.month})`;
-        if (metaEl) metaEl.textContent = `شهر: ${meta.month} | تاريخ ووقت الطباعة: ${new Date().toLocaleDateString('ar-EG')} ${now}`;
+        if (metaEl) metaEl.textContent = `شهر: ${meta.month} | تاريخ ووقت الطباعة: ${new Date().toLocaleDateString('ar-EG-u-nu-latn')} ${now}`;
       } else {
         if (subEl) subEl.textContent = 'تقرير إيرادات وحركات الجلسات اليومية';
         if (metaEl) metaEl.textContent = `تاريخ اليوم: ${meta.date} | وقت الطباعة: ${now}`;

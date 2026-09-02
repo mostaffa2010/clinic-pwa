@@ -1,5 +1,5 @@
 // ========================================================
-// PhysioCare - Roles & Permissions System (RBAC)
+// PhysioFlow - Roles & Permissions System (RBAC)
 // ========================================================
 
 export const ROLES = {

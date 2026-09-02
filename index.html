@@ -465,8 +465,8 @@
                       <i class="fa-solid fa-calendar-day"></i> تاريخ الجلسة *
                     </label>
                     <div style="display: flex; gap: 6px;">
-                      <button type="button" class="btn-quick-date active" id="btn-quick-sess-today" onclick="sessionsManager.setDateQuick('today')">اليوم</button>
-                      <button type="button" class="btn-quick-date" id="btn-quick-sess-yesterday" onclick="sessionsManager.setDateQuick('yesterday')">أمس</button>
+                      <button type="button" id="btn-quick-sess-today" class="btn-quick-date active" onclick="sessionsManager.setDateQuick('today')">اليوم</button>
+                      <button type="button" id="btn-quick-sess-yesterday" class="btn-quick-date" onclick="sessionsManager.setDateQuick('yesterday')">أمس</button>
                     </div>
                   </div>
                   <div style="position: relative;">
@@ -572,9 +572,13 @@
 
           <!-- Table of Today's Sessions -->
           <div class="card">
-            <div class="card-header">
-              <span class="card-title"><i class="fa-solid fa-list-check"></i> الجلسات المسجلة في (<span id="sessions-table-date-label">اليوم</span>)</span>
-              <span class="badge badge-cash" id="sessions-today-count-badge">0 جلسة</span>
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: nowrap;">
+              <div class="card-title" style="margin: 0; display: flex; align-items: center; gap: 6px; font-size: 0.95rem; white-space: nowrap;">
+                <i class="fa-solid fa-list-check" style="color: var(--primary);"></i>
+                <span>سجل جلسات:</span>
+                <span id="sessions-table-date-label" class="badge" style="background: #e0f2fe; color: #0284c7; font-size: 0.82rem; font-weight: 800; white-space: nowrap;">اليوم</span>
+              </div>
+              <span class="badge badge-cash" id="sessions-today-count-badge" style="flex-shrink: 0; white-space: nowrap; font-size: 0.82rem; padding: 4px 10px; font-weight: 800;">0 جلسة</span>
             </div>
             <div class="table-responsive">
               <table class="data-table">
@@ -639,8 +643,8 @@
                 <input type="text" id="finance-date-picker" readonly class="form-control date-picker-clickable" style="width: 145px; font-weight: 700;" onclick="app.openCalendarPicker('finance-date-picker')" placeholder="اختر التاريخ...">
                 <i class="fa-solid fa-calendar-days" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none;"></i>
               </div>
-              <button type="button" class="btn-quick-date active" id="btn-quick-fin-today" onclick="financeManager.setDateQuick('today')">اليوم</button>
-              <button type="button" class="btn-quick-date" id="btn-quick-fin-yesterday" onclick="financeManager.setDateQuick('yesterday')">أمس</button>
+              <button type="button" id="btn-quick-fin-today" class="btn-quick-date active" onclick="financeManager.setDateQuick('today')">اليوم</button>
+              <button type="button" id="btn-quick-fin-yesterday" class="btn-quick-date" onclick="financeManager.setDateQuick('yesterday')">أمس</button>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <label style="font-size: 0.85rem; font-weight: bold;">تصفية بالطبيب:</label>

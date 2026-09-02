@@ -1,5 +1,5 @@
 // ========================================================
-// PhysioCare - Daily Sessions & Check-in Module
+// PhysioFlow - Daily Sessions & Check-in Module
 // ========================================================
 
 import { db } from './db.js';
@@ -29,6 +29,7 @@ export class SessionsManager {
     if (dateInput) {
       dateInput.addEventListener('change', (e) => {
         this.currentSessionDate = e.target.value;
+        this.syncQuickDateButtons(this.currentSessionDate);
         this.updateDateLabel();
         this.loadTodaySessions();
       });
@@ -284,28 +285,48 @@ export class SessionsManager {
     const dateInput = document.getElementById('session-date');
     if (dateInput) dateInput.value = this.currentSessionDate;
 
-    // Toggle active class on quick date buttons
-    const btnToday = document.getElementById('btn-quick-sess-today');
-    const btnYest = document.getElementById('btn-quick-sess-yesterday');
-    if (btnToday) btnToday.classList.toggle('active', type === 'today');
-    if (btnYest) btnYest.classList.toggle('active', type === 'yesterday');
-
+    this.syncQuickDateButtons(this.currentSessionDate);
     this.updateDateLabel();
     this.loadTodaySessions();
+  }
+
+  syncQuickDateButtons(dateStr) {
+    const btnToday = document.getElementById('btn-quick-sess-today');
+    const btnYest = document.getElementById('btn-quick-sess-yesterday');
+    const today = this.todayDateStr;
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yesterday = d.toISOString().split('T')[0];
+
+    if (btnToday) {
+      if (dateStr === today) {
+        btnToday.classList.add('active');
+      } else {
+        btnToday.classList.remove('active');
+      }
+    }
+    if (btnYest) {
+      if (dateStr === yesterday) {
+        btnYest.classList.add('active');
+      } else {
+        btnYest.classList.remove('active');
+      }
+    }
   }
 
   updateDateLabel() {
     const label = document.getElementById('sessions-table-date-label');
     if (!label) return;
     if (this.currentSessionDate === this.todayDateStr) {
-      label.textContent = 'اليوم';
+      label.innerHTML = 'اليوم';
     } else {
       const yest = new Date();
       yest.setDate(yest.getDate() - 1);
-      if (this.currentSessionDate === yest.toISOString().split('T')[0]) {
-        label.textContent = `أمس (${this.currentSessionDate})`;
+      const yestStr = yest.toISOString().split('T')[0];
+      if (this.currentSessionDate === yestStr) {
+        label.innerHTML = `أمس • <bdi dir="ltr">${this.currentSessionDate}</bdi>`;
       } else {
-        label.textContent = this.currentSessionDate;
+        label.innerHTML = `<bdi dir="ltr">${this.currentSessionDate}</bdi>`;
       }
     }
   }
@@ -406,10 +427,11 @@ export class SessionsManager {
     tbody.innerHTML = sessions.map(s => {
       let payBadge = '';
       if (s.payType === 'cash') {
-        payBadge = `<span class="badge badge-cash">نقدي</span>`;
+        payBadge = `<span class="badge badge-cash"><i class="fa-solid fa-money-bill"></i> نقدي</span>`;
+      } else if (s.contractType === 'direct') {
+        payBadge = `<span class="badge badge-direct"><i class="fa-solid fa-file-contract"></i> ${s.insuranceName || 'تأمين'} (مباشر)</span>`;
       } else {
-        const cType = s.contractType === 'direct' ? 'مباشر' : 'غير مباشر';
-        payBadge = `<span class="badge badge-direct">${s.insuranceName || 'تأمين'} (${cType})</span>`;
+        payBadge = `<span class="badge badge-indirect"><i class="fa-solid fa-handshake"></i> ${s.insuranceName || 'تأمين'} (غير مباشر)</span>`;
       }
 
       return `

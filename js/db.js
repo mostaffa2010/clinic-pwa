@@ -165,7 +165,7 @@ class DatabaseService {
           userRole: 'النظام',
           actionType: 'بدء بيئة التدريب',
           description: 'تم تحميل عينات التدريب الافتراضية بنجاح',
-          timestamp: new Date().toLocaleString('ar-EG'),
+          timestamp: new Date().toLocaleString('en-US'),
           timestampRaw: Date.now()
         }
       ]));
@@ -342,13 +342,13 @@ class DatabaseService {
           await this.firestore.collection('sessions').doc(id).update({
             ...dataToUpdate,
             lastEditedBy: currentUser?.name || 'مستخدم',
-            lastEditedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+            lastEditedAt: new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' })
           });
           return { id, ...sessionData };
         } else {
           const newSession = {
             ...sessionData,
-            recordedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+            recordedAt: new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' }),
             recordedBy: currentUser?.name || 'مستخدم'
           };
           const docRef = await this.firestore.collection('sessions').add(newSession);
@@ -368,7 +368,7 @@ class DatabaseService {
           ...sessions[idx],
           ...sessionData,
           lastEditedBy: currentUser?.name || 'مستخدم',
-          lastEditedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+          lastEditedAt: new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' })
         };
         resSession = sessions[idx];
       }
@@ -376,7 +376,7 @@ class DatabaseService {
       const newSession = {
         ...sessionData,
         id: 'sess-' + Date.now(),
-        recordedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+        recordedAt: new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' }),
         recordedBy: currentUser?.name || 'مستخدم'
       };
       sessions.unshift(newSession);
@@ -438,7 +438,7 @@ class DatabaseService {
       try {
         const newExp = {
           ...expenseData,
-          time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+          time: new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' }),
           recordedBy: currentUser?.name || 'مستخدم'
         };
         const docRef = await this.firestore.collection('expenses').add(newExp);
@@ -452,7 +452,7 @@ class DatabaseService {
     const newExp = {
       ...expenseData,
       id: 'exp-' + Date.now(),
-      time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+      time: new Date().toLocaleTimeString('ar-EG-u-nu-latn', { hour: '2-digit', minute: '2-digit' }),
       recordedBy: currentUser?.name || 'مستخدم'
     };
     expenses.unshift(newExp);
@@ -547,7 +547,7 @@ class DatabaseService {
       userRole: user?.role || 'غير محدد',
       actionType,
       description,
-      timestamp: new Date().toLocaleString('ar-EG'),
+      timestamp: new Date().toLocaleString('en-US'),
       timestampRaw: Date.now()
     };
 
