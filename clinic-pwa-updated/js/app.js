@@ -14,6 +14,7 @@ import { AuditAndAdminManager } from './audit.js';
 class App {
   constructor() {
     this.currentView = 'dashboard';
+    this.dialogResolve = null;
   }
 
   async init() {
@@ -47,9 +48,10 @@ class App {
     window.financeManager = this.financeManager;
     window.auditManager = this.auditManager;
 
-    // 4. ربط أحداث التنقل
+    // 4. ربط أحداث التنقل والحوارات
     this.bindNavigation();
     this.bindModalsAndAuth();
+    this.bindCustomDialog();
 
     // 5. تهيئة نظام تسجيل الدخول والمصادقة
     await auth.init(async (user) => {
@@ -140,10 +142,85 @@ class App {
     // Close modal when clicking on backdrop
     document.querySelectorAll('.modal-backdrop').forEach(modal => {
       modal.addEventListener('click', (e) => {
-        if (e.target === modal && modal.id !== 'modal-auth') {
+        if (e.target === modal && modal.id !== 'modal-auth' && modal.id !== 'modal-custom-dialog') {
           modal.classList.remove('active');
         }
       });
+    });
+  }
+
+  bindCustomDialog() {
+    const btnConfirm = document.getElementById('dialog-btn-confirm');
+    const btnCancel = document.getElementById('dialog-btn-cancel');
+
+    if (btnConfirm) {
+      btnConfirm.addEventListener('click', () => {
+        this.closeModal('modal-custom-dialog');
+        if (this.dialogResolve) this.dialogResolve(true);
+      });
+    }
+
+    if (btnCancel) {
+      btnCancel.addEventListener('click', () => {
+        this.closeModal('modal-custom-dialog');
+        if (this.dialogResolve) this.dialogResolve(false);
+      });
+    }
+  }
+
+  showAlert(message, title = 'تنبيه', type = 'info') {
+    return new Promise((resolve) => {
+      this.dialogResolve = resolve;
+      const modal = document.getElementById('modal-custom-dialog');
+      const titleEl = document.getElementById('dialog-title');
+      const msgEl = document.getElementById('dialog-message');
+      const iconEl = document.getElementById('dialog-icon');
+      const btnCancel = document.getElementById('dialog-btn-cancel');
+      const btnConfirm = document.getElementById('dialog-btn-confirm');
+
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = message;
+      if (btnCancel) btnCancel.style.display = 'none';
+      if (btnConfirm) {
+        btnConfirm.textContent = 'حسناً';
+        btnConfirm.className = 'btn btn-primary';
+      }
+
+      if (iconEl) {
+        iconEl.className = `custom-dialog-icon ${type}`;
+        if (type === 'warning') iconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+        else if (type === 'danger') iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+        else if (type === 'success') iconEl.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        else iconEl.innerHTML = '<i class="fa-solid fa-circle-info"></i>';
+      }
+
+      this.openModal('modal-custom-dialog');
+    });
+  }
+
+  showConfirm(message, title = 'تأكيد الإجراء') {
+    return new Promise((resolve) => {
+      this.dialogResolve = resolve;
+      const titleEl = document.getElementById('dialog-title');
+      const msgEl = document.getElementById('dialog-message');
+      const iconEl = document.getElementById('dialog-icon');
+      const btnCancel = document.getElementById('dialog-btn-cancel');
+      const btnConfirm = document.getElementById('dialog-btn-confirm');
+
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = message;
+      if (btnCancel) btnCancel.style.display = 'inline-flex';
+      if (btnConfirm) {
+        btnConfirm.textContent = 'تأكيد';
+        btnConfirm.className = 'btn btn-danger';
+      }
+
+      if (iconEl) {
+        iconEl.className = 'custom-dialog-icon warning';
+        iconEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+      }
+
+      this.openModal('modal-custom-dialog');
     });
   }
 

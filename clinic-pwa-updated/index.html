@@ -242,10 +242,26 @@
             <form id="form-log-session">
               <div class="form-grid">
                 <div class="form-group">
-                  <label for="session-patient-select">المريض *</label>
-                  <select id="session-patient-select" class="form-control" required>
-                    <option value="">-- اختر المريض --</option>
-                  </select>
+                  <label>المريض *</label>
+                  <input type="hidden" id="session-patient-id" required>
+                  
+                  <div id="patient-picker-trigger" class="patient-picker-trigger" onclick="sessionsManager.openPatientPicker()">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      <i class="fa-solid fa-user-injured" style="font-size: 1.2rem; color: var(--primary);"></i>
+                      <span id="patient-picker-placeholder" style="font-weight: 700; color: var(--primary); font-size: 0.92rem;">اضغط هنا للبحث واختيار المريض...</span>
+                    </div>
+                    <i class="fa-solid fa-magnifying-glass" style="color: var(--primary);"></i>
+                  </div>
+
+                  <div id="selected-patient-box" class="selected-patient-card" style="display: none;">
+                    <div>
+                      <div id="selected-patient-name" style="font-weight: 800; font-size: 1rem; color: var(--text-main);"></div>
+                      <div id="selected-patient-sub" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 3px;"></div>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="sessionsManager.openPatientPicker()">
+                      <i class="fa-solid fa-arrows-rotate"></i> تغيير
+                    </button>
+                  </div>
                 </div>
 
                 <div class="form-group">
@@ -261,13 +277,13 @@
                 <div class="form-group">
                   <label>الأعضاء المعالجة في الجلسة *</label>
                   <div class="body-parts-chips" id="body-parts-container">
-                    <label class="chip-choice"><input type="checkbox" value="الرقبة"> الرقبة</label>
-                    <label class="chip-choice"><input type="checkbox" value="أسفل الظهر / الفقرات القطنية"> أسفل الظهر</label>
-                    <label class="chip-choice"><input type="checkbox" value="الكتف"> الكتف</label>
-                    <label class="chip-choice"><input type="checkbox" value="الركبة"> الركبة</label>
-                    <label class="chip-choice"><input type="checkbox" value="الكاحل والقدم"> الكاحل</label>
-                    <label class="chip-choice"><input type="checkbox" value="الكوع والرسغ"> الكوع / اليد</label>
-                    <label class="chip-choice"><input type="checkbox" value="عضو آخر"> آخر</label>
+                    <button type="button" class="chip-choice" data-part="الرقبة"><i class="fa-solid fa-bone"></i> الرقبة</button>
+                    <button type="button" class="chip-choice" data-part="أسفل الظهر / الفقرات القطنية"><i class="fa-solid fa-person"></i> أسفل الظهر</button>
+                    <button type="button" class="chip-choice" data-part="الكتف"><i class="fa-solid fa-hand-dots"></i> الكتف</button>
+                    <button type="button" class="chip-choice" data-part="الركبة"><i class="fa-solid fa-person-walking"></i> الركبة</button>
+                    <button type="button" class="chip-choice" data-part="الكاحل والقدم"><i class="fa-solid fa-shoe-prints"></i> الكاحل</button>
+                    <button type="button" class="chip-choice" data-part="الكوع والرسغ"><i class="fa-solid fa-hand"></i> الكوع / اليد</button>
+                    <button type="button" class="chip-choice" data-part="عضو آخر"><i class="fa-solid fa-circle-plus"></i> آخر</button>
                   </div>
                   <div style="font-size: 0.8rem; color: var(--primary); font-weight: bold; margin-top: 5px;">
                     إجمالي الأعضاء المحددة: <span id="selected-parts-count">0</span>
@@ -751,6 +767,46 @@
           <button type="submit" class="btn btn-primary" style="width: 100%;">دخول للنظام</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  
+  <!-- Modal: Searchable Patient Picker -->
+  <div class="modal-backdrop" id="modal-patient-picker">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-users"></i> اختيار المريض</h3>
+        <button class="modal-close" onclick="app.closeModal('modal-patient-picker')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 16px;">
+        <div style="position: relative;">
+          <input type="text" id="picker-search-input" class="form-control" placeholder="ابحث بالاسم، رقم الموبايل، أو جهة التأمين..." autofocus>
+        </div>
+        <div class="patient-picker-list" id="picker-patients-list">
+          <!-- Items rendered dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="app.closeModal('modal-patient-picker'); app.patientsManager.openAddModal();">
+          <i class="fa-solid fa-user-plus"></i> تسجيل مريض جديد +
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="app.closeModal('modal-patient-picker')">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Custom Application Dialog (Alert / Confirm) -->
+  <div class="modal-backdrop" id="modal-custom-dialog" style="z-index: 200;">
+    <div class="custom-dialog-box">
+      <div class="custom-dialog-icon" id="dialog-icon">
+        <i class="fa-solid fa-circle-info"></i>
+      </div>
+      <h3 class="custom-dialog-title" id="dialog-title">تنبيه</h3>
+      <p class="custom-dialog-text" id="dialog-message"></p>
+      <div class="custom-dialog-actions">
+        <button type="button" class="btn btn-outline" id="dialog-btn-cancel" style="display: none;">إلغاء</button>
+        <button type="button" class="btn btn-primary" id="dialog-btn-confirm">موافق</button>
+      </div>
     </div>
   </div>
 

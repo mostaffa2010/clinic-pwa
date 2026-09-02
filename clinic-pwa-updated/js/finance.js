@@ -58,7 +58,7 @@ export class FinanceManager {
     const currentUser = auth.getCurrentUser();
 
     if (!title || amount <= 0) {
-      alert('يرجى كتابة بند المصروف ومبلغ صالح');
+      await this.app.showAlert('يرجى كتابة بند المصروف وتحديد مبلغ صالح.', 'بيانات غير مكتملة', 'warning');
       return;
     }
 

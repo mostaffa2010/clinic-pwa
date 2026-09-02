@@ -28,7 +28,7 @@ export class AuditAndAdminManager {
     e.preventDefault();
     const currentUser = auth.getCurrentUser();
     if (!RolesManager.canManageUsers(currentUser)) {
-      alert('عذراً، هذه الصلاحية لمدير المركز فقط.');
+      await this.app.showAlert('عذراً، هذه الصلاحية لمدير المركز فقط.', 'تنبيه', 'warning');
       return;
     }
 
@@ -39,7 +39,7 @@ export class AuditAndAdminManager {
 
     const existingUsers = await db.getUsers();
     if (existingUsers.some(u => u.email === email)) {
-      alert('هذا البريد / اسم المستخدم مسجل بالفعل.');
+      await this.app.showAlert('هذا البريد أو اسم المستخدم مسجل بالفعل في المركز.', 'تنبيه', 'warning');
       return;
     }
 
@@ -86,7 +86,8 @@ export class AuditAndAdminManager {
   }
 
   async deleteUser(userId, userName) {
-    if (confirm(`هل أنت متأكد من حذف حساب: ${userName}؟`)) {
+    const confirmed = await this.app.showConfirm(`هل أنت متأكد من حذف حساب الموظف: ${userName}؟`, 'تأكيد الحذف');
+    if (confirmed) {
       const currentUser = auth.getCurrentUser();
       await db.deleteUser(userId);
       await db.logAudit('حذف موظف', `قام المدير بحذف حساب: ${userName}`, currentUser);

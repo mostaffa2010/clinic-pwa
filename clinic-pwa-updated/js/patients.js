@@ -216,7 +216,8 @@ export class PatientsManager {
     const p = this.patients.find(item => item.id === patientId);
     if (!p) return;
 
-    if (confirm(`هل أنت متأكد من حذف ملف المريض: ${p.name}؟ هذا الإجراء لا يمكن التراجع عنه.`)) {
+    const confirmed = await this.app.showConfirm(`هل أنت متأكد من حذف ملف المريض: ${p.name}؟ هذا الإجراء لا يمكن التراجع عنه.`, 'تأكيد حذف المريض');
+    if (confirmed) {
       const currentUser = auth.getCurrentUser();
       await db.deletePatient(patientId);
       await db.logAudit('حذف مريض', `قام بحذف ملف المريض: ${p.name}`, currentUser);
