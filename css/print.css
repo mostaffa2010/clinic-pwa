@@ -1,14 +1,35 @@
 /* ========================================================
-   ASCPT - Optimized Single-Page A4 Print Stylesheet
+   ASCPT - Universal Single-Page A4 Print Stylesheet
    ======================================================== */
 
 @page {
   size: A4 portrait;
-  margin: 5mm 7mm;
+  margin: 5mm 6mm;
 }
 
 @media print {
-  /* Hide all UI elements */
+  /* Reset HTML & BODY display to block so flexbox never breaks print flow */
+  html, body {
+    display: block !important;
+    position: static !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 8pt !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    direction: rtl !important;
+    font-family: 'Cairo', sans-serif, Arial !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Universal hide for common UI elements */
   nav,
   .sidebar,
   .bottom-nav,
@@ -25,68 +46,51 @@
     display: none !important;
   }
 
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    box-sizing: border-box !important;
-  }
-
-  html, body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    font-size: 8pt !important;
-    line-height: 1.15 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    direction: rtl !important;
-    font-family: 'Cairo', sans-serif, Arial !important;
-    width: 100% !important;
-    min-height: 0 !important;
-    height: auto !important;
-  }
-
   /* ================= CASE 1: PRINTING CLINICAL PATIENT SHEET ================= */
-  body.printing-sheet .app-container {
+  /* Hide EVERY direct child of body except the printable sheet */
+  body.printing-sheet > *:not(#printable-patient-sheet) {
     display: none !important;
     height: 0 !important;
+    max-height: 0 !important;
     min-height: 0 !important;
-    padding: 0 !important;
     margin: 0 !important;
-  }
-
-  body.printing-sheet .print-header,
-  body.printing-sheet #view-finance,
-  body.printing-sheet #view-patient-sheet {
-    display: none !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
   }
 
   body.printing-sheet #printable-patient-sheet {
     display: block !important;
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     page-break-inside: avoid !important;
     page-break-after: avoid !important;
+    page-break-before: avoid !important;
   }
 
   body.printing-sheet .sheet-print-header {
     display: block !important;
     text-align: center !important;
     border-bottom: 2px solid #0284c7 !important;
-    padding-bottom: 3px !important;
-    margin-bottom: 6px !important;
+    padding-bottom: 2px !important;
+    margin-bottom: 5px !important;
   }
 
   body.printing-sheet .sheet-print-header h1 {
-    font-size: 13pt !important;
-    margin: 0 0 2px 0 !important;
+    font-size: 12.5pt !important;
+    margin: 0 0 1px 0 !important;
     color: #0284c7 !important;
     font-weight: 800 !important;
   }
 
   body.printing-sheet .sheet-print-header p {
     margin: 1px 0 !important;
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
     color: #334155 !important;
   }
 
@@ -99,7 +103,7 @@
   body.printing-sheet #printable-patient-sheet table.data-table th,
   body.printing-sheet #printable-patient-sheet table.data-table td {
     border: 0.5pt solid #94a3b8 !important;
-    padding: 2.5px 5px !important;
+    padding: 2px 5px !important;
     font-size: 7.5pt !important;
     line-height: 1.15 !important;
   }
@@ -107,8 +111,8 @@
   body.printing-sheet #printable-patient-sheet .sheet-section-box {
     border: 0.5pt solid #cbd5e1 !important;
     border-radius: 4px !important;
-    padding: 3.5px 7px !important;
-    margin-bottom: 4.5px !important;
+    padding: 3px 6px !important;
+    margin-bottom: 4px !important;
     font-size: 7.5pt !important;
     page-break-inside: avoid !important;
     line-height: 1.15 !important;
@@ -119,11 +123,10 @@
     font-size: 8pt !important;
   }
 
-  /* Signatures for Sheet */
   body.printing-sheet .print-footer {
     display: flex !important;
     justify-content: space-around !important;
-    margin-top: 10px !important;
+    margin-top: 8px !important;
     padding-top: 4px !important;
     border-top: 1px dashed #94a3b8 !important;
     font-size: 7.5pt !important;
@@ -131,7 +134,7 @@
   }
 
   body.printing-sheet .print-footer .signature-line {
-    margin-top: 14px !important;
+    margin-top: 12px !important;
     border-bottom: 1px solid #000000 !important;
     width: 120px !important;
   }
@@ -166,8 +169,8 @@
     display: block !important;
     text-align: center;
     border-bottom: 2px solid #0284c7;
-    padding-bottom: 4px;
-    margin-bottom: 8px;
+    padding-bottom: 3px;
+    margin-bottom: 6px;
   }
 
   body:not(.printing-sheet) .print-header h1 {
@@ -187,7 +190,7 @@
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
     background: transparent !important;
   }
 
@@ -207,28 +210,28 @@
     display: flex !important;
     flex-direction: row !important;
     gap: 6px !important;
-    margin-bottom: 8px !important;
+    margin-bottom: 6px !important;
   }
 
   body:not(.printing-sheet) .stat-box {
     flex: 1 !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 4px !important;
-    padding: 4px 6px !important;
+    padding: 3px 5px !important;
     box-shadow: none !important;
     display: flex !important;
     align-items: center !important;
-    gap: 6px !important;
+    gap: 5px !important;
   }
 
   body:not(.printing-sheet) .stat-icon {
-    width: 24px !important;
-    height: 24px !important;
-    font-size: 9pt !important;
+    width: 22px !important;
+    height: 22px !important;
+    font-size: 8.5pt !important;
   }
 
   body:not(.printing-sheet) .stat-info .stat-value {
-    font-size: 9.5pt !important;
+    font-size: 9pt !important;
     font-weight: 700 !important;
     color: #000000 !important;
   }
@@ -241,13 +244,13 @@
   body:not(.printing-sheet) #doctors-breakdown-container {
     display: flex !important;
     flex-direction: row !important;
-    gap: 6px !important;
+    gap: 5px !important;
   }
 
   body:not(.printing-sheet) #doctors-breakdown-container > div {
     flex: 1 !important;
-    padding: 3px 6px !important;
-    font-size: 7.5pt !important;
+    padding: 3px 5px !important;
+    font-size: 7pt !important;
     border-radius: 4px !important;
   }
 
@@ -265,7 +268,7 @@
   body:not(.printing-sheet) table.data-table th,
   body:not(.printing-sheet) table.data-table td {
     border: 0.5pt solid #cbd5e1 !important;
-    padding: 3px 5px !important;
+    padding: 2.5px 5px !important;
     white-space: normal !important;
     line-height: 1.15 !important;
   }
@@ -285,15 +288,15 @@
   body:not(.printing-sheet) .print-footer {
     display: flex !important;
     justify-content: space-around !important;
-    margin-top: 12px !important;
-    padding-top: 5px !important;
+    margin-top: 10px !important;
+    padding-top: 4px !important;
     border-top: 1px dashed #94a3b8 !important;
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
     page-break-inside: avoid !important;
   }
 
   body:not(.printing-sheet) .print-footer .signature-line {
-    margin-top: 16px !important;
+    margin-top: 14px !important;
     border-bottom: 1px solid #000000 !important;
     width: 130px !important;
   }

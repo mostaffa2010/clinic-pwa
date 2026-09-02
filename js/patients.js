@@ -277,10 +277,10 @@ export class PatientsManager {
     const badgeEl = document.getElementById('sheet-patient-billing-badge');
     if (badgeEl) {
       if (p.billing === 'cash') {
-        badgeEl.innerHTML = '<span class="badge badge-cash">نقدي (Cash)</span>';
+        badgeEl.innerHTML = '<span class="badge badge-cash" style="font-size: 0.82rem; padding: 4px 12px; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-money-bill-wave"></i> نقدي</span>';
       } else {
-        const cType = p.contractType === 'direct' ? 'تعاقد مباشر' : 'تعاقد غير مباشر';
-        badgeEl.innerHTML = `<span class="badge badge-direct">${p.insuranceCompany || 'تأمين'} (${cType})</span>`;
+        const cType = p.contractType === 'direct' ? 'مباشر' : 'غير مباشر';
+        badgeEl.innerHTML = `<span class="badge badge-direct" style="font-size: 0.82rem; padding: 4px 12px; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;"><i class="fa-solid fa-shield-halved"></i> ${p.insuranceCompany || 'تأمين'} (${cType})</span>`;
       }
     }
 

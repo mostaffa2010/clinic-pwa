@@ -52,7 +52,21 @@ class DatabaseService {
           billing: 'cash',
           createdAt: new Date().toISOString(),
           createdBy: 'نظام التدريب',
-          lastUpdatedBy: 'نظام التدريب'
+          lastUpdatedBy: 'نظام التدريب',
+          clinicalSheet: {
+            diagnosis: 'انزلاق غضروفي قطني L4-L5 مع عرق النسا',
+            affectedArea: 'الفقرات القطنية والطرف السفلي الأيمن',
+            modalities: ['TENS (تيار تنبيهي)', 'كمادات ساخنة (Hot Pack)', 'الشد الفقري (Traction)'],
+            customModalities: '',
+            procedures: ['تحرير اللفافة العضلية (Myofascial Release)', 'إطالات عضلية (Muscle Stretching)'],
+            customProcedures: '',
+            exercises: ['تمارين التقوية العضلية (Strengthening)', 'تمارين عضلات الجذع (Core Stability)', 'برنامج التمارين المنزلية (Home Exercise Program)'],
+            exerciseDetails: 'تمرين الجسر (Bridging) 3 مجموعات × 10 عدات، إطالة العضلة الكمثرية 30 ثانية 3 مرات يومياً',
+            plannedSessions: '12 جلسة (بمعدل 3 جلسات أسبوعياً)',
+            doctorNotes: 'تحسن في المدى الحركي وانخفاض حدة الألم في الساق اليمنى بنسبة 40%',
+            lastUpdated: '2026-09-02 11:30 ص',
+            updatedBy: 'د. مصطفى محمود'
+          }
         },
         {
           id: 'sb-p2',
