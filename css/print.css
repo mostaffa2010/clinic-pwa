@@ -202,3 +202,32 @@
     width: 130px !important;
   }
 }
+
+/* ================= Patient Clinical Sheet Print Format ================= */
+@media print {
+  body.printing-sheet .print-header,
+  body.printing-sheet #view-finance,
+  body.printing-sheet #view-patient-sheet {
+    display: none !important;
+  }
+
+  body.printing-sheet #printable-patient-sheet {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 8.5pt !important;
+  }
+
+  body.printing-sheet #printable-patient-sheet table.data-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  body.printing-sheet #printable-patient-sheet table.data-table th,
+  body.printing-sheet #printable-patient-sheet table.data-table td {
+    border: 0.5pt solid #cbd5e1 !important;
+    padding: 3px 6px !important;
+    font-size: 8pt !important;
+  }
+}

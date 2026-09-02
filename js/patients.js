@@ -10,6 +10,7 @@ export class PatientsManager {
   constructor(app) {
     this.app = app;
     this.patients = [];
+    this.currentSheetPatient = null;
   }
 
   async init() {
@@ -41,6 +42,14 @@ export class PatientsManager {
         if (insBox) {
           insBox.style.display = e.target.value === 'insurance' ? 'block' : 'none';
         }
+      });
+    });
+
+    // Bind Sheet Chips toggle
+    document.querySelectorAll('.sheet-chip').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        btn.classList.toggle('selected');
       });
     });
 
@@ -99,7 +108,7 @@ export class PatientsManager {
 
       return `
         <tr>
-          <td style="font-weight: 700;">${p.name}</td>
+          <td style="font-weight: 800; color: var(--primary); cursor: pointer;" onclick="patientsManager.openPatientSheet('${p.id}')" title="اضغط لفتح الشيت الطبي"><i class="fa-solid fa-file-waveform" style="margin-left: 6px;"></i> ${p.name}</td>
           <td>${p.age} سنة</td>
           <td><a href="tel:${p.phone}" style="color: var(--primary); text-decoration: none;"><i class="fa-solid fa-phone"></i> ${p.phone}</a></td>
           <td>${p.address || '-'}</td>
@@ -107,7 +116,10 @@ export class PatientsManager {
           <td>${billingBadge}</td>
           <td style="font-size: 0.8rem; color: var(--text-muted);">${p.lastUpdatedBy || p.createdBy || '-'}</td>
           <td>
-            <div style="display: flex; gap: 6px; align-items: center;">
+            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: nowrap;">
+              <button class="btn btn-primary btn-sm" onclick="patientsManager.openPatientSheet('${p.id}')" title="شيت العلاج الطبيعي">
+                <i class="fa-solid fa-file-waveform"></i> الشيت الطبي
+              </button>
               <a href="https://wa.me/${(p.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '20')}" target="_blank" class="btn btn-outline btn-sm" style="color: #10b981; border-color: #10b981;" title="محادثة واتساب">
                 <i class="fa-brands fa-whatsapp"></i>
               </a>
@@ -236,5 +248,198 @@ export class PatientsManager {
       this.app.showToast('تم حذف ملف المريض');
       await this.loadPatients();
     }
+  }
+
+  // ================= Clinical Patient Sheet =================
+  openPatientSheet(patientId) {
+    const p = this.patients.find(item => item.id === patientId);
+    if (!p) return;
+
+    this.currentSheetPatient = p;
+    const sheet = p.clinicalSheet || {};
+
+    // 1. Fill Header info
+    const nameEl = document.getElementById('sheet-patient-name');
+    if (nameEl) nameEl.textContent = p.name;
+
+    const ageEl = document.getElementById('sheet-patient-age');
+    if (ageEl) ageEl.textContent = p.age;
+
+    const phoneEl = document.getElementById('sheet-patient-phone');
+    if (phoneEl) phoneEl.textContent = p.phone;
+
+    const addrEl = document.getElementById('sheet-patient-address');
+    if (addrEl) addrEl.textContent = p.address || 'غير محدد';
+
+    const docEl = document.getElementById('sheet-patient-doctor');
+    if (docEl) docEl.textContent = p.doctor;
+
+    const badgeEl = document.getElementById('sheet-patient-billing-badge');
+    if (badgeEl) {
+      if (p.billing === 'cash') {
+        badgeEl.innerHTML = '<span class="badge badge-cash">نقدي (Cash)</span>';
+      } else {
+        const cType = p.contractType === 'direct' ? 'تعاقد مباشر' : 'تعاقد غير مباشر';
+        badgeEl.innerHTML = `<span class="badge badge-direct">${p.insuranceCompany || 'تأمين'} (${cType})</span>`;
+      }
+    }
+
+    const updateEl = document.getElementById('sheet-last-update-text');
+    if (updateEl) {
+      updateEl.textContent = sheet.lastUpdated 
+        ? `${sheet.lastUpdated} (بواسطة: ${sheet.updatedBy || 'الطبيب'})`
+        : 'لم يتم تعديل الشيت بعد (شيت جديد)';
+    }
+
+    // 2. Fill Diagnosis & Affected Area
+    document.getElementById('sheet-diagnosis').value = sheet.diagnosis || '';
+    document.getElementById('sheet-affected-area').value = sheet.affectedArea || '';
+
+    // 3. Modalities chips
+    const savedModalities = sheet.modalities || [];
+    document.querySelectorAll('#sheet-modalities-container .sheet-chip').forEach(btn => {
+      const val = btn.getAttribute('data-val');
+      btn.classList.toggle('selected', savedModalities.includes(val));
+    });
+    document.getElementById('sheet-custom-modalities').value = sheet.customModalities || '';
+
+    // 4. Procedures chips
+    const savedProcedures = sheet.procedures || [];
+    document.querySelectorAll('#sheet-procedures-container .sheet-chip').forEach(btn => {
+      const val = btn.getAttribute('data-val');
+      btn.classList.toggle('selected', savedProcedures.includes(val));
+    });
+    document.getElementById('sheet-custom-procedures').value = sheet.customProcedures || '';
+
+    // 5. Exercises chips
+    const savedExercises = sheet.exercises || [];
+    document.querySelectorAll('#sheet-exercises-container .sheet-chip').forEach(btn => {
+      const val = btn.getAttribute('data-val');
+      btn.classList.toggle('selected', savedExercises.includes(val));
+    });
+    document.getElementById('sheet-exercise-details').value = sheet.exerciseDetails || '';
+
+    // 6. Plan & Notes
+    document.getElementById('sheet-sessions-count').value = sheet.plannedSessions || '';
+    document.getElementById('sheet-doctor-notes').value = sheet.doctorNotes || '';
+
+    // 7. Switch View
+    this.app.switchView('patient-sheet');
+  }
+
+  async handleSaveSheet(e) {
+    e.preventDefault();
+    if (!this.currentSheetPatient) return;
+
+    const currentUser = auth.getCurrentUser();
+    const saveBtn = document.getElementById('btn-save-sheet');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+      setTimeout(() => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> حفظ الشيت الطبي';
+      }, 1500);
+    }
+
+    // Collect Modalities
+    const modalities = Array.from(document.querySelectorAll('#sheet-modalities-container .sheet-chip.selected'))
+      .map(b => b.getAttribute('data-val'));
+
+    // Collect Procedures
+    const procedures = Array.from(document.querySelectorAll('#sheet-procedures-container .sheet-chip.selected'))
+      .map(b => b.getAttribute('data-val'));
+
+    // Collect Exercises
+    const exercises = Array.from(document.querySelectorAll('#sheet-exercises-container .sheet-chip.selected'))
+      .map(b => b.getAttribute('data-val'));
+
+    const clinicalSheet = {
+      diagnosis: document.getElementById('sheet-diagnosis').value.trim(),
+      affectedArea: document.getElementById('sheet-affected-area').value.trim(),
+      modalities,
+      customModalities: document.getElementById('sheet-custom-modalities').value.trim(),
+      procedures,
+      customProcedures: document.getElementById('sheet-custom-procedures').value.trim(),
+      exercises,
+      exerciseDetails: document.getElementById('sheet-exercise-details').value.trim(),
+      plannedSessions: document.getElementById('sheet-sessions-count').value.trim(),
+      doctorNotes: document.getElementById('sheet-doctor-notes').value.trim(),
+      lastUpdated: new Date().toLocaleString('ar-EG'),
+      updatedBy: currentUser?.name || 'الطبيب المعالج'
+    };
+
+    this.currentSheetPatient.clinicalSheet = clinicalSheet;
+    await db.savePatient(this.currentSheetPatient, currentUser);
+
+    await db.logAudit(
+      'تحديث الشيت الطبي',
+      `قام ${currentUser?.name || 'الطبيب'} بتحديث الشيت الطبي وخطة العلاج للمريض: ${this.currentSheetPatient.name}`,
+      currentUser
+    );
+
+    const updateEl = document.getElementById('sheet-last-update-text');
+    if (updateEl) {
+      updateEl.textContent = `${clinicalSheet.lastUpdated} (بواسطة: ${clinicalSheet.updatedBy})`;
+    }
+
+    this.app.showToast('تم حفظ وتحديث الشيت الطبي للمريض بنجاح');
+    await this.loadPatients();
+  }
+
+  printCurrentSheet() {
+    if (!this.currentSheetPatient) {
+      this.app.showAlert('يرجى فتح شيت المريض أولاً قبل الطباعة.', 'تنبيه', 'warning');
+      return;
+    }
+
+    const p = this.currentSheetPatient;
+    const sheet = p.clinicalSheet || {};
+
+    // 1. Fill Printable Template
+    const now = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    const today = new Date().toLocaleDateString('ar-EG');
+    document.getElementById('print-sheet-meta').textContent = `تاريخ ووقت الطباعة: ${today} ${now}`;
+
+    document.getElementById('p-print-name').textContent = p.name;
+    document.getElementById('p-print-age').textContent = `${p.age} سنة`;
+    document.getElementById('p-print-phone').textContent = p.phone;
+    document.getElementById('p-print-address').textContent = p.address || '-';
+    document.getElementById('p-print-doctor').textContent = p.doctor;
+    document.getElementById('p-print-billing').textContent = p.billing === 'cash' 
+      ? 'نقدي (Cash)' 
+      : `${p.insuranceCompany || 'تأمين'} (${p.contractType === 'direct' ? 'تعاقد مباشر' : 'تعاقد غير مباشر'})`;
+
+    // 2. Diagnosis
+    document.getElementById('p-print-diagnosis').textContent = 
+      `${sheet.diagnosis || 'لم يحدد'} | العضو/المنطقة: ${sheet.affectedArea || 'غير محدد'}`;
+
+    // 3. Modalities
+    const mods = [...(sheet.modalities || [])];
+    if (sheet.customModalities) mods.push(sheet.customModalities);
+    document.getElementById('p-print-modalities').textContent = mods.length > 0 ? mods.join(' • ') : 'لا توجد أجهزة مقررة';
+
+    // 4. Procedures
+    const procs = [...(sheet.procedures || [])];
+    if (sheet.customProcedures) procs.push(sheet.customProcedures);
+    document.getElementById('p-print-procedures').textContent = procs.length > 0 ? procs.join(' • ') : 'لا توجد إجراءات يدوية مقررة';
+
+    // 5. Exercises
+    const exList = [...(sheet.exercises || [])];
+    document.getElementById('p-print-exercises').textContent = exList.length > 0 ? exList.join(' • ') : 'لا توجد تمارين محددة';
+    document.getElementById('p-print-exercise-details').textContent = sheet.exerciseDetails ? `التفاصيل: ${sheet.exerciseDetails}` : '';
+
+    // 6. Plan & Notes
+    const planText = sheet.plannedSessions ? `الخطة: ${sheet.plannedSessions} | ` : '';
+    document.getElementById('p-print-notes').textContent = `${planText}${sheet.doctorNotes || 'لا توجد ملاحظات إضافية'}`;
+
+    // 3. Activate print class and trigger print
+    document.body.classList.add('printing-sheet');
+    window.print();
+
+    // Clean up class after print
+    setTimeout(() => {
+      document.body.classList.remove('printing-sheet');
+    }, 1000);
   }
 }
