@@ -62,9 +62,10 @@
       <button type="button" class="training-pill-btn" id="btn-toggle-training-mobile" onclick="app.toggleTrainingMode()" title="تفعيل وضع التدريب والتجربة">
         <i class="fa-solid fa-flask"></i> <span>تدريب</span>
       </button>
-      <div class="user-status-pill" id="user-status-pill-box">
+      <div class="user-badge" id="user-status-pill-box" title="المستخدم الحالي">
         <span class="status-dot" id="net-status-dot"></span>
-        <span id="header-user-display">جاري التحميل...</span>
+        <i class="fa-solid fa-user-doctor" style="color: var(--primary); font-size: 0.9rem;"></i>
+        <span id="header-user-display" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">د. مصطفى محمود</span>
       </div>
       <button class="btn btn-outline btn-sm btn-icon-round" id="btn-logout-mobile" title="تسجيل الخروج">
         <i class="fa-solid fa-right-from-bracket"></i>
@@ -464,8 +465,8 @@
                       <i class="fa-solid fa-calendar-day"></i> تاريخ الجلسة *
                     </label>
                     <div style="display: flex; gap: 6px;">
-                      <button type="button" class="btn btn-primary btn-sm" id="btn-quick-sess-today" style="padding: 2px 10px; font-size: 0.75rem;" onclick="sessionsManager.setDateQuick('today')">اليوم</button>
-                      <button type="button" class="btn btn-outline btn-sm" id="btn-quick-sess-yesterday" style="padding: 2px 10px; font-size: 0.75rem; background: #ffffff;" onclick="sessionsManager.setDateQuick('yesterday')">أمس</button>
+                      <button type="button" class="btn-quick-date active" id="btn-quick-sess-today" onclick="sessionsManager.setDateQuick('today')">اليوم</button>
+                      <button type="button" class="btn-quick-date" id="btn-quick-sess-yesterday" onclick="sessionsManager.setDateQuick('yesterday')">أمس</button>
                     </div>
                   </div>
                   <div style="position: relative;">
@@ -638,8 +639,8 @@
                 <input type="text" id="finance-date-picker" readonly class="form-control date-picker-clickable" style="width: 145px; font-weight: 700;" onclick="app.openCalendarPicker('finance-date-picker')" placeholder="اختر التاريخ...">
                 <i class="fa-solid fa-calendar-days" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none;"></i>
               </div>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-quick-fin-today" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 700;" onclick="financeManager.setDateQuick('today')">اليوم</button>
-              <button type="button" class="btn btn-outline btn-sm" id="btn-quick-fin-yesterday" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 700;" onclick="financeManager.setDateQuick('yesterday')">أمس</button>
+              <button type="button" class="btn-quick-date active" id="btn-quick-fin-today" onclick="financeManager.setDateQuick('today')">اليوم</button>
+              <button type="button" class="btn-quick-date" id="btn-quick-fin-yesterday" onclick="financeManager.setDateQuick('yesterday')">أمس</button>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <label style="font-size: 0.85rem; font-weight: bold;">تصفية بالطبيب:</label>

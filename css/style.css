@@ -22,10 +22,10 @@
   --text-muted: #64748b;
   --border-color: #e2e8f0;
   
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
+  --radius-lg: 10px;
+  --radius-full: 10px;
   
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
@@ -99,7 +99,7 @@ body {
   gap: 6px;
   background-color: var(--bg-subtle);
   padding: 4px 10px;
-  border-radius: var(--radius-full);
+  border-radius: 10px;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-main);
@@ -128,7 +128,7 @@ body {
   color: #b45309;
   border: 1px solid #fde68a;
   padding: 3px 8px;
-  border-radius: var(--radius-full);
+  border-radius: 10px;
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -287,7 +287,7 @@ body {
 /* ================= Cards & Stats ================= */
 .card {
   background-color: var(--bg-surface);
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
   border: 1px solid var(--border-color);
   padding: 18px;
   box-shadow: var(--shadow-sm);
@@ -405,7 +405,7 @@ body {
 .btn-sm {
   padding: 5px 10px;
   font-size: 0.8rem;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
 }
 
 /* ================= Forms & Inputs ================= */
@@ -458,7 +458,7 @@ body {
   background-color: var(--bg-subtle);
   border: 1px solid var(--border-color);
   padding: 6px 12px;
-  border-radius: var(--radius-full);
+  border-radius: 10px;
   font-size: 0.82rem;
   cursor: pointer;
   user-select: none;
@@ -517,7 +517,7 @@ table.data-table tr:hover {
   align-items: center;
   gap: 5px;
   padding: 3px 8px;
-  border-radius: var(--radius-full);
+  border-radius: 10px;
   font-size: 0.76rem;
   font-weight: 600;
 }
@@ -571,7 +571,7 @@ table.data-table tr:hover {
 
 .modal-content {
   background-color: var(--bg-surface);
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
   max-width: 580px;
   width: 100%;
   max-height: 90vh;
@@ -672,7 +672,7 @@ table.data-table tr:hover {
   background-color: #1e293b;
   color: #ffffff;
   padding: 10px 18px;
-  border-radius: var(--radius-full);
+  border-radius: 10px;
   font-size: 0.88rem;
   box-shadow: var(--shadow-lg);
   display: none;
@@ -791,7 +791,7 @@ table.data-table tr:hover {
 /* ================= Custom Alert & Confirm Modal ================= */
 .custom-dialog-box {
   background-color: var(--bg-surface);
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
   max-width: 400px;
   width: 90%;
   padding: 24px 20px;
@@ -937,7 +937,7 @@ table.data-table tr:hover {
   border: 1px solid #f59e0b;
   color: #92400e;
   padding: 4px 10px;
-  border-radius: var(--radius-full);
+  border-radius: 10px;
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
@@ -1049,4 +1049,49 @@ table.data-table tr:hover {
   cursor: pointer;
   background-color: #ffffff !important;
   padding-left: 32px !important;
+}
+
+
+/* Quick Date Switcher Buttons */
+.btn-quick-date {
+  padding: 4px 12px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  border: 1.5px solid var(--border-color) !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-quick-date:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+.btn-quick-date.active {
+  background-color: var(--primary) !important;
+  color: #ffffff !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.3) !important;
+}
+
+/* User Badge in Top Bar */
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background-color: var(--bg-subtle);
+  padding: 5px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

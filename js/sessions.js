@@ -284,11 +284,11 @@ export class SessionsManager {
     const dateInput = document.getElementById('session-date');
     if (dateInput) dateInput.value = this.currentSessionDate;
 
-    // Toggle button styles
+    // Toggle active class on quick date buttons
     const btnToday = document.getElementById('btn-quick-sess-today');
     const btnYest = document.getElementById('btn-quick-sess-yesterday');
-    if (btnToday) btnToday.className = type === 'today' ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
-    if (btnYest) btnYest.className = type === 'yesterday' ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+    if (btnToday) btnToday.classList.toggle('active', type === 'today');
+    if (btnYest) btnYest.classList.toggle('active', type === 'yesterday');
 
     this.updateDateLabel();
     this.loadTodaySessions();
