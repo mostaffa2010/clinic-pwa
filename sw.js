@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ascpt-cache-v6';
+const CACHE_NAME = 'ascpt-cache-v7';
 
 // Force immediate activation of new service worker
 self.addEventListener('install', (event) => {

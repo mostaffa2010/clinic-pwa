@@ -50,6 +50,7 @@ class App {
 
     // 3. ربط أحداث التنقل والحوارات
     this.bindNavigation();
+    this.bindHardwareBackButton();
     this.bindModalsAndAuth();
     this.bindCustomDialog();
 
@@ -100,7 +101,14 @@ class App {
     document.getElementById('btn-logout-desktop')?.addEventListener('click', () => auth.logout());
   }
 
-  switchView(viewName) {
+  switchView(viewName, isBackNavigation = false) {
+    if (this.currentView === viewName && !isBackNavigation) return;
+
+    if (!isBackNavigation) {
+      const depth = (history.state?.depth || 0) + 1;
+      history.pushState({ view: viewName, depth }, '');
+    }
+
     this.currentView = viewName;
 
     // Toggle active classes on view sections
@@ -176,6 +184,48 @@ class App {
         if (this.dialogResolve) this.dialogResolve(false);
       });
     }
+  }
+
+  // ================= Hardware Back Button & Mobile Gestures =================
+  bindHardwareBackButton() {
+    // ضبط الحالة المبدئية للشاشة الرئيسية
+    if (!history.state) {
+      history.replaceState({ view: 'dashboard', depth: 0 }, '');
+    }
+
+    window.addEventListener('popstate', async (event) => {
+      // 1. إذا كانت هناك أي نافذة منبثقة أو قائمة مفتوحة، نغلقها فقط
+      const activeModal = document.querySelector('.modal-backdrop.active:not(#modal-auth)');
+      if (activeModal) {
+        activeModal.classList.remove('active');
+        return;
+      }
+
+      // 2. إذا كانت هناك شاشة سابقة في سجل التنقل
+      if (event.state && event.state.view) {
+        if (event.state.view !== this.currentView) {
+          this.switchView(event.state.view, true);
+        }
+      } else {
+        // 3. وصل إلى الشاشة الرئيسية (Dashboard) ويريد الخروج من التطبيق
+        if (this.currentView === 'dashboard') {
+          const wantExit = await this.showConfirm(
+            'هل ترغب في الخروج من تطبيق ASCPT وإغلاقه؟',
+            'تأكيد الخروج'
+          );
+          if (wantExit) {
+            // الخروج الفعلي
+            history.back();
+          } else {
+            // البقاء داخل التطبيق واستعادة الحالة
+            history.pushState({ view: 'dashboard', depth: 0 }, '');
+          }
+        } else {
+          // العودة للشاشة الرئيسية
+          this.switchView('dashboard', true);
+        }
+      }
+    });
   }
 
   // اختصارات مباشرة للأزرار
@@ -302,12 +352,22 @@ class App {
 
   openModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add('active');
+    if (modal) {
+      modal.classList.add('active');
+      if (modalId !== 'modal-auth' && modalId !== 'modal-custom-dialog') {
+        history.pushState({ modal: modalId, view: this.currentView }, '');
+      }
+    }
   }
 
   closeModal(modalId) {
     const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
+    if (modal) {
+      modal.classList.remove('active');
+      if (history.state && history.state.modal === modalId) {
+        history.back();
+      }
+    }
   }
 
   showToast(message) {
