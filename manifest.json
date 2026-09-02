@@ -4,11 +4,9 @@
   "description": "تطبيق إدارة مركز الإسكندرية التخصصي للعلاج الطبيعي والتأهيل",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f8fafc",
   "theme_color": "#0284c7",
-  "orientation": "any",
-  "dir": "rtl",
-  "lang": "ar",
   "icons": [
     {
       "src": "icons/icon-192.png",
