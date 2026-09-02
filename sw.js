@@ -1,29 +1,8 @@
-const CACHE_NAME = 'physiocare-cache-v1';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  './css/style.css',
-  './css/print.css',
-  './js/app.js',
-  './js/firebase-config.js',
-  './js/auth.js',
-  './js/roles.js',
-  './js/db.js',
-  './js/patients.js',
-  './js/sessions.js',
-  './js/finance.js',
-  './js/export.js',
-  './js/audit.js',
-  './js/pwa.js'
-];
+const CACHE_NAME = 'physiocare-cache-v3';
 
+// Force immediate activation of new service worker
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    }).then(() => self.skipWaiting())
-  );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -40,17 +19,26 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Network-First Strategy: Fetch latest from server when online; use cache only when offline
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).catch(() => {
-        // Fallback for offline if not found
-        return caches.match('./index.html');
-      });
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        // Fallback to cache when offline
+        return caches.match(event.request).then((cachedResponse) => {
+          return cachedResponse || caches.match('./index.html');
+        });
+      })
   );
 });
