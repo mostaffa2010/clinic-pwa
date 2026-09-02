@@ -10,15 +10,30 @@ export class SessionsManager {
   constructor(app) {
     this.app = app;
     this.todayDateStr = new Date().toISOString().split('T')[0];
+    this.currentSessionDate = this.todayDateStr;
     this.selectedPatientId = null;
+    this.editingSessionId = null;
   }
 
   async init() {
     this.bindEvents();
+    const dateInput = document.getElementById('session-date');
+    if (dateInput) dateInput.value = this.currentSessionDate;
+    this.updateDateLabel();
     await this.loadTodaySessions();
   }
 
   bindEvents() {
+    // 0. Session Date Change
+    const dateInput = document.getElementById('session-date');
+    if (dateInput) {
+      dateInput.addEventListener('change', (e) => {
+        this.currentSessionDate = e.target.value;
+        this.updateDateLabel();
+        this.loadTodaySessions();
+      });
+    }
+
     // 1. Body parts buttons toggle (100% bug-free click handling)
     const chipsContainer = document.getElementById('body-parts-container');
     if (chipsContainer) {
@@ -225,8 +240,12 @@ export class SessionsManager {
     const amountPaid = parseFloat(document.getElementById('session-amount-paid').value) || 0;
     const notes = document.getElementById('session-notes').value.trim();
 
+    const sessionDateVal = document.getElementById('session-date')?.value || this.currentSessionDate;
+    const isEdit = Boolean(this.editingSessionId);
+
     const sessionData = {
-      date: this.todayDateStr,
+      id: this.editingSessionId || null,
+      date: sessionDateVal,
       patientId: this.selectedPatientId,
       patientName,
       doctor,
@@ -240,13 +259,13 @@ export class SessionsManager {
     };
 
     await db.saveSession(sessionData, currentUser);
-    await db.logAudit(
-      'تسجيل جلسة',
-      `تسجيل جلسة للمريض ${patientName} مع ${doctor} (${selectedParts.length} أعضاء: ${selectedParts.join('، ')} - مسدد: ${amountPaid} ج.م)`,
-      currentUser
-    );
+    const auditAction = isEdit ? 'تعديل جلسة' : 'تسجيل جلسة';
+    const auditDesc = isEdit
+      ? `تعديل بيانات جلسة المريض ${patientName} بتاريخ ${sessionDateVal} (مسدد: ${amountPaid} ج.م)`
+      : `تسجيل جلسة للمريض ${patientName} مع ${doctor} بتاريخ ${sessionDateVal} (${selectedParts.length} أعضاء: ${selectedParts.join('، ')} - مسدد: ${amountPaid} ج.م)`;
 
-    this.app.showToast('تم تسجيل وحفظ الجلسة بنجاح');
+    await db.logAudit(auditAction, auditDesc, currentUser);
+    this.app.showToast(isEdit ? 'تم تعديل بيانات الجلسة بنجاح' : 'تم تسجيل وحفظ الجلسة بنجاح');
     this.resetSessionForm();
     await this.loadTodaySessions();
     
@@ -254,8 +273,114 @@ export class SessionsManager {
     await this.app.financeManager.loadDailyReport();
   }
 
+  setDateQuick(type) {
+    if (type === 'today') {
+      this.currentSessionDate = this.todayDateStr;
+    } else if (type === 'yesterday') {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      this.currentSessionDate = d.toISOString().split('T')[0];
+    }
+    const dateInput = document.getElementById('session-date');
+    if (dateInput) dateInput.value = this.currentSessionDate;
+
+    // Toggle button styles
+    const btnToday = document.getElementById('btn-quick-sess-today');
+    const btnYest = document.getElementById('btn-quick-sess-yesterday');
+    if (btnToday) btnToday.className = type === 'today' ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+    if (btnYest) btnYest.className = type === 'yesterday' ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+
+    this.updateDateLabel();
+    this.loadTodaySessions();
+  }
+
+  updateDateLabel() {
+    const label = document.getElementById('sessions-table-date-label');
+    if (!label) return;
+    if (this.currentSessionDate === this.todayDateStr) {
+      label.textContent = 'اليوم';
+    } else {
+      const yest = new Date();
+      yest.setDate(yest.getDate() - 1);
+      if (this.currentSessionDate === yest.toISOString().split('T')[0]) {
+        label.textContent = `أمس (${this.currentSessionDate})`;
+      } else {
+        label.textContent = this.currentSessionDate;
+      }
+    }
+  }
+
+  async editSession(sessionId) {
+    const allSessions = await db.getSessions();
+    const s = allSessions.find(item => item.id === sessionId);
+    if (!s) return;
+
+    // 1. Switch to sessions view
+    this.app.switchView('sessions');
+
+    // 2. Set state
+    this.editingSessionId = s.id;
+    this.currentSessionDate = s.date || this.todayDateStr;
+    const dateInput = document.getElementById('session-date');
+    if (dateInput) dateInput.value = this.currentSessionDate;
+    this.updateDateLabel();
+
+    // 3. Select patient
+    await this.selectPatient(s.patientId);
+
+    // 4. Select doctor
+    const docSelect = document.getElementById('session-doctor-select');
+    if (docSelect) {
+      docSelect.value = s.doctor;
+      this.app.updateCustomSelectDisplay('session-doctor-select');
+    }
+
+    // 5. Select body parts
+    const savedParts = s.bodyParts || [];
+    document.querySelectorAll('#body-parts-container .chip-choice').forEach(btn => {
+      const val = btn.getAttribute('data-part');
+      btn.classList.toggle('selected', savedParts.includes(val));
+    });
+    this.updateBodyPartsCount();
+
+    // 6. Payment
+    const payRadios = document.querySelectorAll('input[name="session-pay-type"]');
+    payRadios.forEach(r => { r.checked = (r.value === s.payType); });
+
+    const insFields = document.getElementById('session-insurance-fields');
+    if (s.payType === 'insurance') {
+      insFields.style.display = 'block';
+      document.getElementById('session-insurance-name').value = s.insuranceName || '';
+      const cRadios = document.querySelectorAll('input[name="session-contract-type"]');
+      cRadios.forEach(r => { r.checked = (r.value === (s.contractType || 'direct')); });
+    } else {
+      insFields.style.display = 'none';
+    }
+
+    document.getElementById('session-amount-paid').value = s.amountPaid || 0;
+    document.getElementById('session-notes').value = s.notes || '';
+
+    // 7. Update submit button
+    const submitBtn = document.querySelector('#form-log-session button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> حفظ تعديل الجلسة';
+      submitBtn.className = 'btn btn-success';
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.app.showToast(`جاري تعديل جلسة: ${s.patientName}`);
+  }
+
   resetSessionForm() {
+    this.editingSessionId = null;
+    const submitBtn = document.querySelector('#form-log-session button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> حفظ الجلسة';
+      submitBtn.className = 'btn btn-primary';
+    }
     document.getElementById('form-log-session').reset();
+    const dateInput = document.getElementById('session-date');
+    if (dateInput) dateInput.value = this.currentSessionDate;
     document.querySelectorAll('#body-parts-container .chip-choice').forEach(c => c.classList.remove('selected'));
     document.getElementById('selected-parts-count').textContent = '0';
     document.getElementById('session-insurance-fields').style.display = 'none';
@@ -263,7 +388,7 @@ export class SessionsManager {
   }
 
   async loadTodaySessions() {
-    const sessions = await db.getSessions(this.todayDateStr);
+    const sessions = await db.getSessions(this.currentSessionDate);
     const tbody = document.getElementById('sessions-today-tbody');
     const badge = document.getElementById('sessions-today-count-badge');
     if (badge) badge.textContent = `${sessions.length} جلسة`;
@@ -300,11 +425,16 @@ export class SessionsManager {
           <td style="font-weight: 700; color: var(--success);">${s.amountPaid} ج.م</td>
           <td style="font-size: 0.8rem; color: var(--text-muted);">${s.recordedBy} (${s.recordedAt})</td>
           <td>
-            ${canDelete ? `
-              <button class="btn btn-outline btn-sm btn-delete-record" style="color: var(--danger);" onclick="sessionsManager.deleteSession('${s.id}')">
-                <i class="fa-solid fa-trash"></i>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn btn-outline btn-sm" onclick="sessionsManager.editSession('${s.id}')" title="تعديل بيانات الجلسة">
+                <i class="fa-solid fa-pen-to-square"></i>
               </button>
-            ` : '-'}
+              ${canDelete ? `
+                <button class="btn btn-outline btn-sm btn-delete-record" style="color: var(--danger);" onclick="sessionsManager.deleteSession('${s.id}')" title="حذف">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              ` : ''}
+            </div>
           </td>
         </tr>
       `;

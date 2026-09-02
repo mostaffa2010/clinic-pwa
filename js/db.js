@@ -337,28 +337,53 @@ class DatabaseService {
   async saveSession(sessionData, currentUser) {
     if (this.isCloud) {
       try {
-        const newSession = {
-          ...sessionData,
-          recordedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-          recordedBy: currentUser?.name || 'مستخدم'
-        };
-        const docRef = await this.firestore.collection('sessions').add(newSession);
-        return { id: docRef.id, ...newSession };
+        if (sessionData.id) {
+          const { id, ...dataToUpdate } = sessionData;
+          await this.firestore.collection('sessions').doc(id).update({
+            ...dataToUpdate,
+            lastEditedBy: currentUser?.name || 'مستخدم',
+            lastEditedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+          });
+          return { id, ...sessionData };
+        } else {
+          const newSession = {
+            ...sessionData,
+            recordedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+            recordedBy: currentUser?.name || 'مستخدم'
+          };
+          const docRef = await this.firestore.collection('sessions').add(newSession);
+          return { id: docRef.id, ...newSession };
+        }
       } catch (err) {
         console.warn('Cloud saveSession failed, saving locally:', err);
       }
     }
 
     const sessions = await this.getSessions();
-    const newSession = {
-      ...sessionData,
-      id: 'sess-' + Date.now(),
-      recordedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-      recordedBy: currentUser?.name || 'مستخدم'
-    };
-    sessions.unshift(newSession);
+    let resSession = null;
+    if (sessionData.id) {
+      const idx = sessions.findIndex(s => s.id === sessionData.id);
+      if (idx !== -1) {
+        sessions[idx] = {
+          ...sessions[idx],
+          ...sessionData,
+          lastEditedBy: currentUser?.name || 'مستخدم',
+          lastEditedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+        };
+        resSession = sessions[idx];
+      }
+    } else {
+      const newSession = {
+        ...sessionData,
+        id: 'sess-' + Date.now(),
+        recordedAt: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+        recordedBy: currentUser?.name || 'مستخدم'
+      };
+      sessions.unshift(newSession);
+      resSession = newSession;
+    }
     localStorage.setItem(this.kSessions, JSON.stringify(sessions));
-    return newSession;
+    return resSession;
   }
 
   async deleteSession(sessionId) {
@@ -433,6 +458,22 @@ class DatabaseService {
     expenses.unshift(newExp);
     localStorage.setItem(this.kExpenses, JSON.stringify(expenses));
     return newExp;
+  }
+
+  async deleteExpense(expenseId) {
+    if (this.isCloud) {
+      try {
+        await this.firestore.collection('expenses').doc(expenseId).delete();
+        return true;
+      } catch (err) {
+        console.warn('Cloud deleteExpense failed, deleting locally:', err);
+      }
+    }
+
+    let expenses = await this.getExpenses();
+    expenses = expenses.filter(e => e.id !== expenseId);
+    localStorage.setItem(this.kExpenses, JSON.stringify(expenses));
+    return true;
   }
 
   // =================== USERS & ROLES ===================

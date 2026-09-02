@@ -4,6 +4,7 @@
 
 import { db } from './db.js';
 import { auth } from './auth.js';
+import { RolesManager } from './roles.js';
 
 export class FinanceManager {
   constructor(app) {
@@ -58,6 +59,38 @@ export class FinanceManager {
     const formExpense = document.getElementById('form-expense');
     if (formExpense) {
       formExpense.addEventListener('submit', (e) => this.handleAddExpense(e));
+    }
+  }
+
+  setDateQuick(type) {
+    if (type === 'today') {
+      this.currentDate = new Date().toISOString().split('T')[0];
+    } else if (type === 'yesterday') {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      this.currentDate = d.toISOString().split('T')[0];
+    }
+    const datePicker = document.getElementById('finance-date-picker');
+    if (datePicker) datePicker.value = this.currentDate;
+
+    // Toggle button styles
+    const btnToday = document.getElementById('btn-quick-fin-today');
+    const btnYest = document.getElementById('btn-quick-fin-yesterday');
+    if (btnToday) btnToday.className = type === 'today' ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+    if (btnYest) btnYest.className = type === 'yesterday' ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
+
+    this.loadDailyReport();
+  }
+
+  async deleteExpense(expenseId) {
+    const confirmed = await this.app.showConfirm('هل أنت متأكد من حذف هذا المصروف؟', 'تأكيد الحذف');
+    if (confirmed) {
+      const currentUser = auth.getCurrentUser();
+      await db.deleteExpense(expenseId);
+      await db.logAudit('حذف مصروف', `حذف مصروف برقم ${expenseId}`, currentUser);
+      this.app.showToast('تم حذف المصروف بنجاح');
+      await this.loadReport();
+      this.app.refreshAll();
     }
   }
 
@@ -219,6 +252,18 @@ export class FinanceManager {
               <td><span class="badge badge-role-doctor">${count} أعضاء (${parts})</span></td>
               <td style="font-weight: 700; color: var(--success);">${s.amountPaid} ج.م</td>
               <td style="font-size: 0.8rem; color: var(--text-muted);">${s.recordedBy}</td>
+              <td class="no-print">
+                <div style="display: flex; gap: 4px;">
+                  <button class="btn btn-outline btn-sm" onclick="sessionsManager.editSession('${s.id}')" title="تعديل بيانات الجلسة">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  ${RolesManager.canDelete(auth.getCurrentUser()) ? `
+                    <button class="btn btn-outline btn-sm btn-delete-record" style="color: var(--danger);" onclick="sessionsManager.deleteSession('${s.id}')" title="حذف">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  ` : ''}
+                </div>
+              </td>
             </tr>
           `;
         }).join('');
@@ -237,6 +282,13 @@ export class FinanceManager {
             <td style="font-weight: 700; color: var(--danger);">${e.amount} ج.م</td>
             <td style="font-size: 0.8rem; color: var(--text-muted);">${e.recordedBy}</td>
             <td style="font-size: 0.8rem; color: var(--text-muted);">${e.time}</td>
+            <td class="no-print">
+              ${RolesManager.canDelete(auth.getCurrentUser()) ? `
+                <button class="btn btn-outline btn-sm btn-delete-record" style="color: var(--danger);" onclick="financeManager.deleteExpense('${e.id}')" title="حذف">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              ` : '-'}
+            </td>
           </tr>
         `).join('');
       }
