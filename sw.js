@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ascpt-cache-v17';
+const CACHE_NAME = 'ascpt-cache-v18';
 
 const PRECACHE_ASSETS = [
   './',

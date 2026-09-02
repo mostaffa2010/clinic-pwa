@@ -237,6 +237,149 @@ class App {
     });
   }
 
+  // ================= Custom Medical Calendar Picker =================
+  openCalendarPicker(targetInputId) {
+    this.calendarTargetInputId = targetInputId;
+    const input = document.getElementById(targetInputId);
+    let initDate = new Date();
+
+    if (input && input.value) {
+      const parts = input.value.split('-');
+      if (parts.length === 3) {
+        initDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      }
+    }
+
+    this.calendarViewingYear = initDate.getFullYear();
+    this.calendarViewingMonth = initDate.getMonth();
+    this.calendarSelectedDate = input?.value || initDate.toISOString().split('T')[0];
+
+    this.renderCalendar();
+    this.openModal('modal-custom-calendar');
+  }
+
+  calendarNavigate(direction) {
+    this.calendarViewingMonth += direction;
+    if (this.calendarViewingMonth < 0) {
+      this.calendarViewingMonth = 11;
+      this.calendarViewingYear--;
+    } else if (this.calendarViewingMonth > 11) {
+      this.calendarViewingMonth = 0;
+      this.calendarViewingYear++;
+    }
+    this.renderCalendar();
+  }
+
+  calendarSelectDay(y, m, d) {
+    const mm = String(m + 1).padStart(2, '0');
+    const dd = String(d).padStart(2, '0');
+    this.calendarSelectedDate = `${y}-${mm}-${dd}`;
+    this.renderCalendar();
+  }
+
+  calendarSelectQuick(type) {
+    const today = new Date();
+    if (type === 'today') {
+      this.calendarSelectedDate = today.toISOString().split('T')[0];
+    } else if (type === 'yesterday') {
+      const yest = new Date();
+      yest.setDate(yest.getDate() - 1);
+      this.calendarSelectedDate = yest.toISOString().split('T')[0];
+    } else if (type === 'firstOfMonth') {
+      const mm = String(this.calendarViewingMonth + 1).padStart(2, '0');
+      this.calendarSelectedDate = `${this.calendarViewingYear}-${mm}-01`;
+    }
+    this.calendarConfirmSelection();
+  }
+
+  calendarConfirmSelection() {
+    if (this.calendarTargetInputId && this.calendarSelectedDate) {
+      const input = document.getElementById(this.calendarTargetInputId);
+      if (input) {
+        input.value = this.calendarSelectedDate;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+    this.closeModal('modal-custom-calendar');
+  }
+
+  renderCalendar() {
+    const monthNames = [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ];
+
+    const y = this.calendarViewingYear;
+    const m = this.calendarViewingMonth;
+
+    // Header Title
+    const monthYearEl = document.getElementById('cal-month-year');
+    if (monthYearEl) {
+      monthYearEl.textContent = `${monthNames[m]} ${y}`;
+    }
+
+    // Selected Subtitle
+    const subEl = document.getElementById('cal-selected-sub');
+    if (subEl && this.calendarSelectedDate) {
+      const [sy, sm, sd] = this.calendarSelectedDate.split('-').map(Number);
+      const selObj = new Date(sy, sm - 1, sd);
+      subEl.textContent = selObj.toLocaleDateString('ar-EG', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    }
+
+    const container = document.getElementById('cal-days-container');
+    if (!container) return;
+
+    const firstDay = new Date(y, m, 1);
+    const lastDate = new Date(y, m + 1, 0).getDate();
+    const prevMonthLastDate = new Date(y, m, 0).getDate();
+
+    // السبت = 0, الأحد = 1, ... الجمعة = 6
+    const startDayIndex = (firstDay.getDay() + 1) % 7;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    let cellsHtml = '';
+
+    // أيام الشهر السابق للحشو
+    for (let i = startDayIndex - 1; i >= 0; i--) {
+      const pDate = prevMonthLastDate - i;
+      cellsHtml += `<div class="cal-day-cell other-month">${pDate}</div>`;
+    }
+
+    // أيام الشهر الحالي
+    for (let d = 1; d <= lastDate; d++) {
+      const mm = String(m + 1).padStart(2, '0');
+      const dd = String(d).padStart(2, '0');
+      const dateStr = `${y}-${mm}-${dd}`;
+
+      const isSelected = dateStr === this.calendarSelectedDate;
+      const isToday = dateStr === todayStr;
+
+      let cls = 'cal-day-cell';
+      if (isSelected) cls += ' selected';
+      if (isToday) cls += ' today';
+
+      cellsHtml += `
+        <button type="button" class="${cls}" onclick="app.calendarSelectDay(${y}, ${m}, ${d})">
+          ${d}
+        </button>
+      `;
+    }
+
+    // إكمال الشبكة حتى 35 أو 42 خلية
+    const totalCells = startDayIndex + lastDate;
+    const remaining = (7 - (totalCells % 7)) % 7;
+    for (let n = 1; n <= remaining; n++) {
+      cellsHtml += `<div class="cal-day-cell other-month">${n}</div>`;
+    }
+
+    container.innerHTML = cellsHtml;
+  }
+
   // ================= Sandbox & Training Mode =================
   updateTrainingModeUI() {
     const isTraining = db.isTraining;
