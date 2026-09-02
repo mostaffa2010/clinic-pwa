@@ -295,29 +295,10 @@ export class PatientsManager {
     document.getElementById('sheet-diagnosis').value = sheet.diagnosis || '';
     document.getElementById('sheet-affected-area').value = sheet.affectedArea || '';
 
-    // 3. Modalities chips
-    const savedModalities = sheet.modalities || [];
-    document.querySelectorAll('#sheet-modalities-container .sheet-chip').forEach(btn => {
-      const val = btn.getAttribute('data-val');
-      btn.classList.toggle('selected', savedModalities.includes(val));
-    });
-    document.getElementById('sheet-custom-modalities').value = sheet.customModalities || '';
-
-    // 4. Procedures chips
-    const savedProcedures = sheet.procedures || [];
-    document.querySelectorAll('#sheet-procedures-container .sheet-chip').forEach(btn => {
-      const val = btn.getAttribute('data-val');
-      btn.classList.toggle('selected', savedProcedures.includes(val));
-    });
-    document.getElementById('sheet-custom-procedures').value = sheet.customProcedures || '';
-
-    // 5. Exercises chips
-    const savedExercises = sheet.exercises || [];
-    document.querySelectorAll('#sheet-exercises-container .sheet-chip').forEach(btn => {
-      const val = btn.getAttribute('data-val');
-      btn.classList.toggle('selected', savedExercises.includes(val));
-    });
-    document.getElementById('sheet-exercise-details').value = sheet.exerciseDetails || '';
+    // 3, 4, 5. Dynamic Clinical Chips (Manager Controlled)
+    this.renderAllClinicalChips(sheet);
+    const exerciseDetailsEl = document.getElementById('sheet-exercise-details');
+    if (exerciseDetailsEl) exerciseDetailsEl.value = sheet.exerciseDetails || '';
 
     // 6. Plan & Notes
     document.getElementById('sheet-sessions-count').value = sheet.plannedSessions || '';
@@ -358,9 +339,9 @@ export class PatientsManager {
       diagnosis: document.getElementById('sheet-diagnosis').value.trim(),
       affectedArea: document.getElementById('sheet-affected-area').value.trim(),
       modalities,
-      customModalities: document.getElementById('sheet-custom-modalities').value.trim(),
+      customModalities: '',
       procedures,
-      customProcedures: document.getElementById('sheet-custom-procedures').value.trim(),
+      customProcedures: '',
       exercises,
       exerciseDetails: document.getElementById('sheet-exercise-details').value.trim(),
       plannedSessions: document.getElementById('sheet-sessions-count').value.trim(),
