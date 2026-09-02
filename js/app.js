@@ -51,6 +51,7 @@ class App {
     // 3. ربط أحداث التنقل والحوارات
     this.bindNavigation();
     this.bindHardwareBackButton();
+    this.disablePullToRefresh();
     this.updateTrainingModeUI();
     this.bindModalsAndAuth();
     this.bindCustomDialog();
@@ -185,6 +186,29 @@ class App {
         if (this.dialogResolve) this.dialogResolve(false);
       });
     }
+  }
+
+  // ================= Disable Pull-To-Refresh on Mobile =================
+  disablePullToRefresh() {
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches.length > 0) {
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!e.touches || e.touches.length === 0) return;
+      const touchY = e.touches[0].clientY;
+      const touchDiff = touchY - touchStartY;
+      
+      // إذا كان المستخدم في قمة الصفحة ويسحب للأسفل، نمنع حركة إعادة التحميل
+      if (window.scrollY <= 0 && touchDiff > 0) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }
+    }, { passive: false });
   }
 
   // ================= Hardware Back Button & Mobile Gestures =================
