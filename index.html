@@ -50,34 +50,36 @@
   <!-- Mobile Top Header -->
   <header class="top-header no-print">
     <a href="#" class="brand-logo">
-      <i class="fa-solid fa-notes-medical"></i>
+      <i class="fa-solid fa-hospital"></i>
       <span>ASCPT</span>
     </a>
-    <div style="display: flex; align-items: center; gap: 10px;">
+    <div class="header-actions-group">
+      <!-- Training Button for Live mode -->
       <button type="button" class="training-pill-btn" id="btn-toggle-training-mobile" onclick="app.toggleTrainingMode()" title="تفعيل وضع التدريب والتجربة">
-        <i class="fa-solid fa-flask"></i> <span id="training-btn-text-mobile">تدريب</span>
+        <i class="fa-solid fa-flask"></i> <span>تدريب</span>
       </button>
-      <div class="user-status-pill">
+      <div class="user-status-pill" id="user-status-pill-box">
         <span class="status-dot" id="net-status-dot"></span>
         <span id="header-user-display">جاري التحميل...</span>
       </div>
-      <button class="btn btn-outline btn-sm" id="btn-logout-mobile" title="تسجيل الخروج">
+      <button class="btn btn-outline btn-sm btn-icon-round" id="btn-logout-mobile" title="تسجيل الخروج">
         <i class="fa-solid fa-right-from-bracket"></i>
       </button>
     </div>
   </header>
-  <!-- Sandbox / Training Mode Banner -->
+
+  <!-- Sandbox / Training Mode Banner (Clean, slim single-row strip) -->
   <div id="sandbox-banner" class="sandbox-banner no-print" style="display: none;">
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <i class="fa-solid fa-flask-vial" style="font-size: 1.15rem; color: #d97706;"></i>
-      <span><strong>الوضع التدريبي (Sandbox):</strong> بيانات تدريبية مستقلة للشرح والتجربة دون لمس بيانات المركز الحقيقية.</span>
+    <div style="display: flex; align-items: center; gap: 7px;">
+      <i class="fa-solid fa-flask-vial" style="font-size: 1rem; color: #d97706;"></i>
+      <span style="font-size: 0.8rem; font-weight: 700;">بيئة تدريب وشرح (Sandbox)</span>
     </div>
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <button type="button" class="btn btn-outline btn-sm" style="border-color: #d97706; color: #92400e; font-weight: 700; background: #ffffff;" onclick="app.resetTrainingData()">
-        <i class="fa-solid fa-rotate-left"></i> إعادة ضبط التدريب
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <button type="button" class="btn btn-outline btn-sm" style="border-color: #d97706; color: #92400e; font-weight: 700; background: #ffffff; padding: 3px 8px; font-size: 0.74rem;" onclick="app.resetTrainingData()" title="استعادة عينات الشرح">
+        <i class="fa-solid fa-rotate-left"></i> إعادة ضبط
       </button>
-      <button type="button" class="btn btn-sm" style="background-color: #d97706; color: #ffffff; font-weight: 700;" onclick="app.toggleTrainingMode(false)">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج من التدريب
+      <button type="button" class="btn btn-sm" style="background-color: #d97706; color: #ffffff; font-weight: 700; padding: 3px 9px; font-size: 0.74rem;" onclick="app.toggleTrainingMode(false)" title="الرجوع لبيانات المركز الحقيقية">
+        <i class="fa-solid fa-xmark"></i> خروج
       </button>
     </div>
   </div>

@@ -235,11 +235,12 @@ class App {
     const banner = document.getElementById('sandbox-banner');
     if (banner) banner.style.display = isTraining ? 'flex' : 'none';
 
-    const mText = document.getElementById('training-btn-text-mobile');
-    if (mText) mText.textContent = isTraining ? 'خروج من التدريب' : 'تدريب';
+    // في وضع التدريب نخفي زر التدريب العلوي لتوفير مساحة لأن الشريط السفلي يحتوي على زر الخروج
+    const mBtn = document.getElementById('btn-toggle-training-mobile');
+    if (mBtn) mBtn.style.display = isTraining ? 'none' : 'inline-flex';
 
     const dText = document.getElementById('training-btn-text-desktop');
-    if (dText) dText.textContent = isTraining ? 'الخروج من الوضع التدريبي' : 'تفعيل الوضع التدريبي (Sandbox)';
+    if (dText) dText.textContent = isTraining ? 'الخروج من التدريب (بيانات حقيقية)' : 'تفعيل الوضع التدريبي (Sandbox)';
   }
 
   async toggleTrainingMode(forceState = null) {

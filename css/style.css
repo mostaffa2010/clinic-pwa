@@ -55,42 +55,78 @@ body {
 
 /* ================= Top Bar (Mobile) ================= */
 .top-header {
-  height: var(--topbar-height);
+  height: 56px;
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 14px;
   position: sticky;
   top: 0;
   z-index: 40;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .brand-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--primary);
   text-decoration: none;
+  letter-spacing: -0.2px;
 }
 
 .brand-logo i {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
+}
+
+.header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .user-status-pill {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background-color: var(--bg-subtle);
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
   border: 1px solid var(--border-color);
+  max-width: 145px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-icon-round {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.training-mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .status-dot {
@@ -877,34 +913,37 @@ table.data-table tr:hover {
 
 /* ================= Sandbox / Training Mode Banner ================= */
 .sandbox-banner {
-  background-color: #fef3c7;
-  border-bottom: 2px solid #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-bottom: 1.5px solid #fde68a;
   color: #92400e;
-  padding: 8px 16px;
+  padding: 8px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.08);
+  position: sticky;
+  top: 56px;
   z-index: 39;
 }
 
 .training-pill-btn {
   background-color: #fef3c7;
-  border: 1.5px solid #f59e0b;
+  border: 1px solid #f59e0b;
   color: #92400e;
   padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  transition: all 0.2s;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
 
-.training-pill-btn:hover {
+.training-pill-btn:hover, .training-pill-btn:active {
   background-color: #fde68a;
 }

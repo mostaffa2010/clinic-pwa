@@ -187,7 +187,20 @@ class AuthService {
 
     if (this.currentUser) {
       const roleText = RolesManager.getRoleLabel(this.currentUser.role);
-      if (headerDisplay) headerDisplay.textContent = `${this.currentUser.name} (${roleText})`;
+      let cleanName = this.currentUser.name || 'مستخدم';
+      
+      // تنسيق الاسم لمنع التكرار (مثلاً منع تكرار كلمة مدير مرتين)
+      let headerText = cleanName;
+      if (!cleanName.includes(roleText) && !cleanName.includes('مدير')) {
+        headerText = `${cleanName} (${roleText})`;
+      }
+
+      if (headerDisplay) {
+        headerDisplay.textContent = headerText;
+        if (headerDisplay.parentElement) {
+          headerDisplay.parentElement.title = `${this.currentUser.name} | ${roleText}`;
+        }
+      }
       if (sidebarName) sidebarName.textContent = this.currentUser.name;
       if (sidebarRole) {
         sidebarRole.textContent = roleText;
