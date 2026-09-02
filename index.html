@@ -197,12 +197,18 @@
               <input type="text" id="patient-search-input" class="form-control" placeholder="ابحث بالاسم، رقم الموبايل، أو جهة التأمين...">
             </div>
             <div>
-              <select id="patient-filter-type" class="form-control">
-                <option value="all">كل الأنظمة</option>
-                <option value="cash">نقدي فقط</option>
-                <option value="insurance_direct">تأمين (مباشر)</option>
-                <option value="insurance_indirect">تأمين (غير مباشر)</option>
-              </select>
+              <div class="custom-select-wrapper" style="min-width: 170px;">
+                <select id="patient-filter-type" class="form-control" style="display: none;">
+                  <option value="all">كل الأنظمة</option>
+                  <option value="cash">نقدي فقط</option>
+                  <option value="insurance_direct">تأمين (مباشر)</option>
+                  <option value="insurance_indirect">تأمين (غير مباشر)</option>
+                </select>
+                <button type="button" class="custom-select-btn" id="btn-select-patient-filter-type" onclick="app.openCustomPicker('patient-filter-type', 'تصفية سجل المرضى')">
+                  <span class="btn-text">كل الأنظمة</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -271,9 +277,13 @@
 
                 <div class="form-group">
                   <label for="session-doctor-select">الطبيب المعالج *</label>
-                  <select id="session-doctor-select" class="form-control" required>
-                    <!-- Populated dynamically from clinic team -->
-                  </select>
+                  <div class="custom-select-wrapper">
+                    <select id="session-doctor-select" class="form-control" style="display: none;" required></select>
+                    <button type="button" class="custom-select-btn" id="btn-select-session-doctor-select" onclick="app.openCustomPicker('session-doctor-select', 'اختر الطبيب المعالج')">
+                      <span class="btn-text">-- اختر الطبيب المعالج --</span>
+                      <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="form-group">
@@ -395,9 +405,15 @@
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <label style="font-size: 0.85rem; font-weight: bold;">تصفية بالطبيب:</label>
-              <select id="finance-doctor-filter" class="form-control" style="width: auto;">
-                <option value="all">كل الأطباء</option>
-              </select>
+              <div class="custom-select-wrapper" style="min-width: 150px;">
+                <select id="finance-doctor-filter" class="form-control" style="display: none;">
+                  <option value="all">كل الأطباء</option>
+                </select>
+                <button type="button" class="custom-select-btn" id="btn-select-finance-doctor-filter" onclick="app.openCustomPicker('finance-doctor-filter', 'تصفية التقرير بالطبيب')">
+                  <span class="btn-text">كل الأطباء</span>
+                  <i class="fa-solid fa-chevron-down"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -534,11 +550,17 @@
                 </div>
                 <div class="form-group">
                   <label>الصلاحية (الدور) *</label>
-                  <select id="newuser-role" class="form-control" required>
-                    <option value="doctor">طبيب معالج (Doctor)</option>
-                    <option value="receptionist">سكرتيرة / استقبال (Receptionist)</option>
-                    <option value="admin">مدير المركز (Admin - صلاحيات كاملة)</option>
-                  </select>
+                  <div class="custom-select-wrapper">
+                    <select id="newuser-role" class="form-control" style="display: none;" required>
+                      <option value="doctor">طبيب معالج (Doctor)</option>
+                      <option value="receptionist">سكرتارية / استقبال (Receptionist)</option>
+                      <option value="admin">مدير المركز (Admin - صلاحيات كاملة)</option>
+                    </select>
+                    <button type="button" class="custom-select-btn" id="btn-select-newuser-role" onclick="app.openCustomPicker('newuser-role', 'تحديد نوع الصلاحية')">
+                      <span class="btn-text">طبيب معالج (Doctor)</span>
+                      <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                  </div>
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
                   <i class="fa-solid fa-plus"></i> إنشاء الحساب
@@ -671,9 +693,13 @@
 
           <div class="form-group" style="margin-top: 12px;">
             <label for="p-doctor">الدكتور المعالج *</label>
-            <select id="p-doctor" class="form-control" required>
-              <!-- Populated dynamically from clinic team -->
-            </select>
+            <div class="custom-select-wrapper">
+              <select id="p-doctor" class="form-control" style="display: none;" required></select>
+              <button type="button" class="custom-select-btn" id="btn-select-p-doctor" onclick="app.openCustomPicker('p-doctor', 'اختر الطبيب المعالج للمريض')">
+                <span class="btn-text">-- اختر الطبيب المعالج --</span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
+            </div>
           </div>
 
           <div class="form-group" style="margin-top: 12px;">
@@ -810,6 +836,24 @@
       <div class="custom-dialog-actions">
         <button type="button" class="btn btn-outline" id="dialog-btn-cancel" style="display: none;">إلغاء</button>
         <button type="button" class="btn btn-primary" id="dialog-btn-confirm">موافق</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- Modal: Custom Unified Picker (Replaces all native browser select dialogs) -->
+  <div class="modal-backdrop" id="modal-custom-picker" style="z-index: 210;">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="custom-picker-title"><i class="fa-solid fa-list-check"></i> اختر من القائمة</h3>
+        <button class="modal-close" onclick="app.closeModal('modal-custom-picker')">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 16px;">
+        <div class="custom-picker-options-list" id="custom-picker-list">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" onclick="app.closeModal('modal-custom-picker')">إلغاء</button>
       </div>
     </div>
   </div>

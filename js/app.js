@@ -65,7 +65,16 @@ class App {
     this.exportManager.init();
     await this.auditManager.init();
 
-    console.log('ASCPT Application fully initialized and ready.');
+    // مزامنة أزرار القوائم المخصصة
+    ['patient-filter-type', 'session-doctor-select', 'finance-doctor-filter', 'newuser-role', 'p-doctor'].forEach(id => {
+      this.updateCustomSelectDisplay(id);
+    });
+
+    // توجيه أي تنبيهات لتبدو بهوية التطبيق المخصصة
+    window.alert = (msg) => this.showAlert(msg, 'تنبيه المركز', 'info');
+    window.confirm = (msg) => this.showConfirm(msg, 'تأكيد الإجراء');
+
+    console.log('ASCPT Application fully initialized with custom pickers and dialogs.');
   }
 
   bindNavigation() {
@@ -168,7 +177,56 @@ class App {
     }
   }
 
-  showAlert(message, title = 'تنبيه', type = 'info') {
+  // ================= Custom Picker Management =================
+  openCustomPicker(selectId, modalTitle = 'اختر من القائمة') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const titleEl = document.getElementById('custom-picker-title');
+    if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-list-check"></i> ${modalTitle}`;
+
+    const container = document.getElementById('custom-picker-list');
+    if (!container) return;
+
+    const options = Array.from(select.options);
+    const currentVal = select.value;
+
+    container.innerHTML = options.map((opt) => {
+      const isSelected = opt.value === currentVal;
+      return `
+        <div class="custom-picker-row ${isSelected ? 'active-choice' : ''}" onclick="app.selectCustomOption('${selectId}', '${opt.value.replace(/'/g, "\'")}')">
+          <span>${opt.text}</span>
+          ${isSelected ? '<i class="fa-solid fa-check check-icon"></i>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    this.openModal('modal-custom-picker');
+  }
+
+  selectCustomOption(selectId, value) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    select.value = value;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    this.updateCustomSelectDisplay(selectId);
+    this.closeModal('modal-custom-picker');
+  }
+
+  updateCustomSelectDisplay(selectId) {
+    const select = document.getElementById(selectId);
+    const btn = document.getElementById(`btn-select-${selectId}`);
+    if (!select || !btn) return;
+
+    const textSpan = btn.querySelector('.btn-text');
+    if (textSpan) {
+      const selectedOpt = select.options[select.selectedIndex];
+      textSpan.textContent = selectedOpt ? selectedOpt.text : '-- اختر --';
+    }
+  }
+
+  showAlert(message, title = 'تنبيه المركز', type = 'info') {
     return new Promise((resolve) => {
       this.dialogResolve = resolve;
       const modal = document.getElementById('modal-custom-dialog');
@@ -274,6 +332,11 @@ class App {
       sessDoc.innerHTML = doctors.map(d => `<option value="${d}">${d}</option>`).join('');
       if (prev && doctors.includes(prev)) sessDoc.value = prev;
     }
+
+    // Sync custom button displays
+    this.updateCustomSelectDisplay('p-doctor');
+    this.updateCustomSelectDisplay('session-doctor-select');
+    this.updateCustomSelectDisplay('finance-doctor-filter');
   }
 
   async refreshAll() {
