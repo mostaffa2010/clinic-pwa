@@ -27,6 +27,11 @@
 
   <!-- SheetJS for Excel Export -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');
+    }
+  </script>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="css/style.css">
@@ -186,7 +191,7 @@
             <h2 style="font-size: 1.35rem; font-weight: 800;">سجل المرضى</h2>
             <p style="font-size: 0.85rem; color: var(--text-muted);">إدارة ملفات المرضى المسجلين والجدد</p>
           </div>
-          <button class="btn btn-primary" id="btn-open-add-patient">
+          <button type="button" class="btn btn-primary" id="btn-open-add-patient" onclick="app.openAddPatientModal()">
             <i class="fa-solid fa-user-plus"></i> مريض جديد
           </button>
         </div>
@@ -384,13 +389,13 @@
           </div>
           <!-- Action Buttons -->
           <div class="no-print" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn btn-outline" id="btn-add-expense">
+            <button type="button" class="btn btn-outline" id="btn-add-expense" onclick="app.openAddExpenseModal()">
               <i class="fa-solid fa-minus-circle" style="color: var(--danger);"></i> تسجيل مصروف
             </button>
-            <button class="btn btn-success" id="btn-export-excel">
+            <button type="button" class="btn btn-success" id="btn-export-excel" onclick="app.exportToExcel()">
               <i class="fa-solid fa-file-excel"></i> تصدير Excel
             </button>
-            <button class="btn btn-primary" id="btn-print-report">
+            <button type="button" class="btn btn-primary" id="btn-print-report" onclick="app.printReport()">
               <i class="fa-solid fa-print"></i> طباعة عبر Wi-Fi
             </button>
           </div>

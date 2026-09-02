@@ -51,6 +51,12 @@ export class FinanceManager {
     }
   }
 
+  openAddExpenseModal() {
+    const form = document.getElementById('form-expense');
+    if (form) form.reset();
+    this.app.openModal('modal-expense');
+  }
+
   async handleAddExpense(e) {
     e.preventDefault();
     const title = document.getElementById('exp-title').value.trim();

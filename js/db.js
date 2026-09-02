@@ -55,11 +55,19 @@ class DatabaseService {
     return docs.length > 0 ? Array.from(new Set(docs)) : ['مدير المركز'];
   }
 
+  withTimeout(promise, timeoutMs = 4000) {
+    let timer;
+    const timeoutPromise = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('Firestore timeout')), timeoutMs);
+    });
+    return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timer));
+  }
+
   // =================== PATIENTS ===================
   async getPatients() {
     if (this.isCloud) {
       try {
-        const snap = await this.firestore.collection('patients').get();
+        const snap = await this.withTimeout(this.firestore.collection('patients').get());
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
         console.warn('Cloud getPatients failed, using local storage:', err);
@@ -148,7 +156,7 @@ class DatabaseService {
         if (filterDate) {
           ref = ref.where('date', '==', filterDate);
         }
-        const snap = await ref.get();
+        const snap = await this.withTimeout(ref.get());
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
         console.warn('Cloud getSessions failed, using local storage:', err);
@@ -214,7 +222,7 @@ class DatabaseService {
         if (filterDate) {
           ref = ref.where('date', '==', filterDate);
         }
-        const snap = await ref.get();
+        const snap = await this.withTimeout(ref.get());
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
         console.warn('Cloud getExpenses failed, using local storage:', err);
@@ -260,7 +268,7 @@ class DatabaseService {
   async getUsers() {
     if (this.isCloud) {
       try {
-        const snap = await this.firestore.collection('users').get();
+        const snap = await this.withTimeout(this.firestore.collection('users').get());
         if (!snap.empty) {
           return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         }
@@ -310,7 +318,7 @@ class DatabaseService {
   async getAuditLogs() {
     if (this.isCloud) {
       try {
-        const snap = await this.firestore.collection('audit_logs').orderBy('timestampRaw', 'desc').get();
+        const snap = await this.withTimeout(this.firestore.collection('audit_logs').orderBy('timestampRaw', 'desc').get());
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       } catch (err) {
         console.warn('Cloud getAuditLogs failed, using local storage:', err);

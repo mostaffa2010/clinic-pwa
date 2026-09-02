@@ -28,6 +28,7 @@ class App {
     window.patientsManager = this.patientsManager;
     window.sessionsManager = this.sessionsManager;
     window.financeManager = this.financeManager;
+    window.exportManager = this.exportManager;
     window.auditManager = this.auditManager;
   }
 
@@ -175,6 +176,23 @@ class App {
         if (this.dialogResolve) this.dialogResolve(false);
       });
     }
+  }
+
+  // اختصارات مباشرة للأزرار
+  exportToExcel() {
+    if (this.exportManager) this.exportManager.exportToExcel();
+  }
+
+  printReport() {
+    if (this.exportManager) this.exportManager.printReport();
+  }
+
+  openAddExpenseModal() {
+    if (this.financeManager) this.financeManager.openAddExpenseModal();
+  }
+
+  openAddPatientModal() {
+    if (this.patientsManager) this.patientsManager.openAddModal();
   }
 
   // ================= Custom Picker Management =================
