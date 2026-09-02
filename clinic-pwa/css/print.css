@@ -1,0 +1,125 @@
+/* ========================================================
+   PhysioCare - Print Stylesheet (A4 Format for Clinic Report)
+   ======================================================== */
+
+@media print {
+  /* Hide non-printable UI elements */
+  nav,
+  .sidebar,
+  .bottom-nav,
+  .top-header,
+  .btn,
+  .modal,
+  .search-box,
+  .filters-bar,
+  .no-print,
+  #pwa-install-banner,
+  .toast-container {
+    display: none !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 12pt;
+    margin: 0;
+    padding: 10mm;
+    direction: rtl;
+    font-family: 'Cairo', sans-serif, Arial;
+  }
+
+  .main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  .view-section {
+    display: none !important;
+  }
+
+  /* Only show the report view when printing */
+  #view-finance {
+    display: block !important;
+  }
+
+  /* Printable Header */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    border-bottom: 2px solid #0284c7;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .print-header h1 {
+    font-size: 18pt;
+    margin: 0 0 5px 0;
+    color: #0284c7;
+  }
+
+  .print-header p {
+    margin: 3px 0;
+    font-size: 11pt;
+    color: #333333;
+  }
+
+  /* Table styling for print */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 15px !important;
+  }
+
+  table th,
+  table td {
+    border: 1px solid #cccccc !important;
+    padding: 6px 8px !important;
+    font-size: 10pt !important;
+    text-align: right !important;
+  }
+
+  table th {
+    background-color: #f1f5f9 !important;
+    color: #000000 !important;
+    font-weight: bold;
+  }
+
+  /* Summary Box */
+  .summary-cards-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10px !important;
+    margin-top: 15px !important;
+    page-break-inside: avoid;
+  }
+
+  .stat-card {
+    border: 1px solid #0284c7 !important;
+    box-shadow: none !important;
+    padding: 8px !important;
+    text-align: center !important;
+  }
+
+  .stat-card .val {
+    font-size: 14pt !important;
+    font-weight: bold;
+    color: #000000 !important;
+  }
+
+  .print-footer {
+    display: flex !important;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 10px;
+    border-top: 1px dashed #999999;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+
+  .print-footer .signature-line {
+    margin-top: 30px;
+    border-bottom: 1px solid #000000;
+    width: 150px;
+  }
+}
