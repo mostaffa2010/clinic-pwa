@@ -107,7 +107,10 @@ export class PatientsManager {
           <td>${billingBadge}</td>
           <td style="font-size: 0.8rem; color: var(--text-muted);">${p.lastUpdatedBy || p.createdBy || '-'}</td>
           <td>
-            <div style="display: flex; gap: 6px;">
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <a href="https://wa.me/${(p.phone || '').replace(/[^0-9]/g, '').replace(/^0/, '20')}" target="_blank" class="btn btn-outline btn-sm" style="color: #10b981; border-color: #10b981;" title="محادثة واتساب">
+                <i class="fa-brands fa-whatsapp"></i>
+              </a>
               <button class="btn btn-outline btn-sm" onclick="patientsManager.openEditModal('${p.id}')" title="تعديل">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
@@ -172,6 +175,15 @@ export class PatientsManager {
 
   async handleSavePatient(e) {
     e.preventDefault();
+    const saveBtn = document.getElementById('btn-save-patient');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحفظ...';
+      setTimeout(() => {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = 'حفظ المريض';
+      }, 1500);
+    }
     const currentUser = auth.getCurrentUser();
     const id = document.getElementById('p-id').value;
     const name = document.getElementById('p-name').value.trim();

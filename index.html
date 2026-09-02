@@ -54,6 +54,9 @@
       <span>ASCPT</span>
     </a>
     <div style="display: flex; align-items: center; gap: 10px;">
+      <button type="button" class="training-pill-btn" id="btn-toggle-training-mobile" onclick="app.toggleTrainingMode()" title="تفعيل وضع التدريب والتجربة">
+        <i class="fa-solid fa-flask"></i> <span id="training-btn-text-mobile">تدريب</span>
+      </button>
       <div class="user-status-pill">
         <span class="status-dot" id="net-status-dot"></span>
         <span id="header-user-display">جاري التحميل...</span>
@@ -63,6 +66,22 @@
       </button>
     </div>
   </header>
+  <!-- Sandbox / Training Mode Banner -->
+  <div id="sandbox-banner" class="sandbox-banner no-print" style="display: none;">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <i class="fa-solid fa-flask-vial" style="font-size: 1.15rem; color: #d97706;"></i>
+      <span><strong>الوضع التدريبي (Sandbox):</strong> بيانات تدريبية مستقلة للشرح والتجربة دون لمس بيانات المركز الحقيقية.</span>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button type="button" class="btn btn-outline btn-sm" style="border-color: #d97706; color: #92400e; font-weight: 700; background: #ffffff;" onclick="app.resetTrainingData()">
+        <i class="fa-solid fa-rotate-left"></i> إعادة ضبط التدريب
+      </button>
+      <button type="button" class="btn btn-sm" style="background-color: #d97706; color: #ffffff; font-weight: 700;" onclick="app.toggleTrainingMode(false)">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج من التدريب
+      </button>
+    </div>
+  </div>
+
 
   <!-- App Layout -->
   <div class="app-container">
@@ -110,6 +129,9 @@
             <i class="fa-solid fa-right-from-bracket"></i>
           </button>
         </div>
+        <button type="button" class="training-pill-btn" id="btn-toggle-training-desktop" onclick="app.toggleTrainingMode()" style="width: 100%; justify-content: center; margin-bottom: 8px;">
+          <i class="fa-solid fa-flask"></i> <span id="training-btn-text-desktop">تفعيل الوضع التدريبي (Sandbox)</span>
+        </button>
       </div>
     </aside>
 
@@ -714,7 +736,30 @@
             </table>
           </div>
         </div>
-              <!-- Reset Demo Data Card (Admin only) -->
+                      <!-- Backup & Restore Card (Admin only) -->
+        <div class="card admin-only" style="margin-top: 20px; border-color: var(--primary); background-color: #f0f9ff;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <div style="font-weight: 800; color: #0369a1; font-size: 1rem;">
+                <i class="fa-solid fa-database"></i> النسخ الاحتياطي واستعادة البيانات (Backup & Restore)
+              </div>
+              <div style="font-size: 0.8rem; color: #0284c7; margin-top: 3px;">
+                تنزيل نسخة مشفرة كاملة من سجلات المركز (مرضى، جلسات، حسابات) أو استعادتها بضغطة زر.
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-outline btn-sm" style="border-color: #0284c7; color: #0369a1; font-weight: 700;" onclick="app.downloadBackup()">
+                <i class="fa-solid fa-download"></i> تنزيل نسخة احتياطية
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="app.triggerRestoreBackup()">
+                <i class="fa-solid fa-upload"></i> استعادة من ملف
+              </button>
+              <input type="file" id="backup-file-input" accept=".json" style="display: none;" onchange="app.handleFileRestore(event)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Reset Demo Data Card (Admin only) -->
         <div class="card admin-only" style="margin-top: 20px; border-color: var(--warning); background-color: #fffbeb;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div>
@@ -889,7 +934,13 @@
             <input type="password" id="login-password" class="form-control" placeholder="كلمة المرور الخاصة بحسابك" required value="">
           </div>
 
-          <div id="login-error-msg" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 10px; display: none;"></div>
+                    <div id="login-error-msg" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 10px; display: none;"></div>
+
+          <div style="margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 12px; text-align: center;">
+            <button type="button" class="training-pill-btn" style="width: 100%; justify-content: center; padding: 8px 12px;" onclick="app.toggleTrainingMode(true); app.closeModal('modal-auth');">
+              <i class="fa-solid fa-flask-vial"></i> الدخول مباشرة في الوضع التدريبي (تجربة وشرح)
+            </button>
+          </div>
 
 
         </div>

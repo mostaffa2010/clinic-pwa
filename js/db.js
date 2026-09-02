@@ -7,6 +7,20 @@ import { fbFirestore, isFirebaseConfigured } from './firebase-config.js';
 class DatabaseService {
   constructor() {
     this.initLocalStorage();
+    if (this.isTraining) {
+      this.initSandboxData();
+    }
+  }
+
+  get isTraining() {
+    return localStorage.getItem('pc_mode_training') === 'true';
+  }
+
+  setTrainingMode(enabled) {
+    localStorage.setItem('pc_mode_training', enabled ? 'true' : 'false');
+    if (enabled) {
+      this.initSandboxData();
+    }
   }
 
   get firestore() {
@@ -14,35 +28,162 @@ class DatabaseService {
   }
 
   get isCloud() {
+    // في وضع التدريب يتم عزل السحابة تماماً لضمان عدم لمس بيانات المركز
+    if (this.isTraining) return false;
     return Boolean(isFirebaseConfigured && this.firestore);
   }
 
-  initLocalStorage() {
-    if (!localStorage.getItem('pc_patients')) {
-      localStorage.setItem('pc_patients', JSON.stringify([]));
+  get kPatients() { return this.isTraining ? 'pc_sb_patients' : 'pc_patients'; }
+  get kSessions() { return this.isTraining ? 'pc_sb_sessions' : 'pc_sessions'; }
+  get kExpenses() { return this.isTraining ? 'pc_sb_expenses' : 'pc_expenses'; }
+  get kUsers() { return this.isTraining ? 'pc_sb_users' : 'pc_users'; }
+  get kAudit() { return this.isTraining ? 'pc_sb_audit_logs' : 'pc_audit_logs'; }
+
+  initSandboxData(force = false) {
+    if (!localStorage.getItem('pc_sb_patients') || force) {
+      localStorage.setItem('pc_sb_patients', JSON.stringify([
+        {
+          id: 'sb-p1',
+          name: 'أحمد محمود العطار (حالة تجريبية)',
+          age: 38,
+          phone: '01011223344',
+          address: 'الإسكندرية - سموحة',
+          doctor: 'د. مصطفى محمود',
+          billing: 'cash',
+          createdAt: new Date().toISOString(),
+          createdBy: 'نظام التدريب',
+          lastUpdatedBy: 'نظام التدريب'
+        },
+        {
+          id: 'sb-p2',
+          name: 'مريم إبراهيم حسن (حالة تجريبية)',
+          age: 45,
+          phone: '01223344556',
+          address: 'الإسكندرية - سيدي جابر',
+          doctor: 'د. أحمد خليل',
+          billing: 'insurance',
+          insuranceCompany: 'أكسا (AXA)',
+          contractType: 'direct',
+          createdAt: new Date().toISOString(),
+          createdBy: 'نظام التدريب',
+          lastUpdatedBy: 'نظام التدريب'
+        },
+        {
+          id: 'sb-p3',
+          name: 'عمر عبد الرحمن علي (حالة تجريبية)',
+          age: 29,
+          phone: '01112233445',
+          address: 'الإسكندرية - لوران',
+          doctor: 'د. سارة عادل',
+          billing: 'insurance',
+          insuranceCompany: 'نكست كير (NextCare)',
+          contractType: 'indirect',
+          createdAt: new Date().toISOString(),
+          createdBy: 'نظام التدريب',
+          lastUpdatedBy: 'نظام التدريب'
+        }
+      ]));
     }
-    if (!localStorage.getItem('pc_users')) {
-      localStorage.setItem('pc_users', JSON.stringify([
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (!localStorage.getItem('pc_sb_sessions') || force) {
+      localStorage.setItem('pc_sb_sessions', JSON.stringify([
+        {
+          id: 'sb-sess1',
+          date: todayStr,
+          patientId: 'sb-p1',
+          patientName: 'أحمد محمود العطار (حالة تجريبية)',
+          doctor: 'د. مصطفى محمود',
+          bodyParts: ['أسفل الظهر / الفقرات القطنية', 'الرقبة'],
+          bodyPartsCount: 2,
+          payType: 'cash',
+          amountPaid: 250,
+          notes: 'جلسة أولى - تمارين استطالة وتقوية',
+          recordedAt: '10:00 ص',
+          recordedBy: 'أ. منار خالد (استقبال)'
+        },
+        {
+          id: 'sb-sess2',
+          date: todayStr,
+          patientId: 'sb-p2',
+          patientName: 'مريم إبراهيم حسن (حالة تجريبية)',
+          doctor: 'د. أحمد خليل',
+          bodyParts: ['الركبة'],
+          bodyPartsCount: 1,
+          payType: 'insurance',
+          insuranceName: 'أكسا (AXA)',
+          contractType: 'direct',
+          amountPaid: 50,
+          notes: 'نسبة تحمل نقدي',
+          recordedAt: '11:15 ص',
+          recordedBy: 'أ. منار خالد (استقبال)'
+        }
+      ]));
+    }
+
+    if (!localStorage.getItem('pc_sb_expenses') || force) {
+      localStorage.setItem('pc_sb_expenses', JSON.stringify([
+        {
+          id: 'sb-exp1',
+          date: todayStr,
+          title: 'شراء جل علاج طبيعي ومستلزمات تدريبية',
+          amount: 150,
+          recordedBy: 'د. مصطفى محمود',
+          time: '09:30 ص'
+        }
+      ]));
+    }
+
+    if (!localStorage.getItem('pc_sb_users') || force) {
+      localStorage.setItem('pc_sb_users', JSON.stringify([
+        { id: 'sb-u1', name: 'د. مصطفى محمود', email: 'admin@ascpt.com', role: 'admin' },
+        { id: 'sb-u2', name: 'د. أحمد خليل', email: 'ahmed@ascpt.com', role: 'doctor' },
+        { id: 'sb-u3', name: 'د. سارة عادل', email: 'sara@ascpt.com', role: 'doctor' },
+        { id: 'sb-u4', name: 'أ. منار خالد', email: 'rec@ascpt.com', role: 'receptionist' }
+      ]));
+    }
+
+    if (!localStorage.getItem('pc_sb_audit_logs') || force) {
+      localStorage.setItem('pc_sb_audit_logs', JSON.stringify([
+        {
+          id: 'sb-log1',
+          userName: 'نظام التدريب',
+          userRole: 'النظام',
+          actionType: 'بدء بيئة التدريب',
+          description: 'تم تحميل عينات التدريب الافتراضية بنجاح',
+          timestamp: new Date().toLocaleString('ar-EG'),
+          timestampRaw: Date.now()
+        }
+      ]));
+    }
+  }
+
+  initLocalStorage() {
+    if (!localStorage.getItem(this.kPatients)) {
+      localStorage.setItem(this.kPatients, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(this.kUsers)) {
+      localStorage.setItem(this.kUsers, JSON.stringify([
         { id: 'u-admin', name: 'مدير المركز (Admin)', email: 'admin@ascpt.com', role: 'admin' }
       ]));
     }
-    if (!localStorage.getItem('pc_sessions')) {
-      localStorage.setItem('pc_sessions', JSON.stringify([]));
+    if (!localStorage.getItem(this.kSessions)) {
+      localStorage.setItem(this.kSessions, JSON.stringify([]));
     }
-    if (!localStorage.getItem('pc_expenses')) {
-      localStorage.setItem('pc_expenses', JSON.stringify([]));
+    if (!localStorage.getItem(this.kExpenses)) {
+      localStorage.setItem(this.kExpenses, JSON.stringify([]));
     }
-    if (!localStorage.getItem('pc_audit_logs')) {
-      localStorage.setItem('pc_audit_logs', JSON.stringify([]));
+    if (!localStorage.getItem(this.kAudit)) {
+      localStorage.setItem(this.kAudit, JSON.stringify([]));
     }
   }
 
   clearDemoData() {
-    localStorage.setItem('pc_patients', JSON.stringify([]));
-    localStorage.setItem('pc_sessions', JSON.stringify([]));
-    localStorage.setItem('pc_expenses', JSON.stringify([]));
-    localStorage.setItem('pc_audit_logs', JSON.stringify([]));
-    localStorage.setItem('pc_users', JSON.stringify([
+    localStorage.setItem(this.kPatients, JSON.stringify([]));
+    localStorage.setItem(this.kSessions, JSON.stringify([]));
+    localStorage.setItem(this.kExpenses, JSON.stringify([]));
+    localStorage.setItem(this.kAudit, JSON.stringify([]));
+    localStorage.setItem(this.kUsers, JSON.stringify([
       { id: 'u-admin', name: 'مدير المركز (Admin)', email: 'admin@ascpt.com', role: 'admin' }
     ]));
   }
@@ -73,7 +214,7 @@ class DatabaseService {
         console.warn('Cloud getPatients failed, using local storage:', err);
       }
     }
-    const raw = localStorage.getItem('pc_patients');
+    const raw = localStorage.getItem(this.kPatients);
     return raw ? JSON.parse(raw) : [];
   }
 
@@ -128,7 +269,7 @@ class DatabaseService {
       patients.unshift(newPatient);
     }
 
-    localStorage.setItem('pc_patients', JSON.stringify(patients));
+    localStorage.setItem(this.kPatients, JSON.stringify(patients));
     return isEdit ? 'updated' : 'created';
   }
 
@@ -144,7 +285,7 @@ class DatabaseService {
 
     let patients = await this.getPatients();
     patients = patients.filter(p => p.id !== patientId);
-    localStorage.setItem('pc_patients', JSON.stringify(patients));
+    localStorage.setItem(this.kPatients, JSON.stringify(patients));
     return true;
   }
 
@@ -167,7 +308,7 @@ class DatabaseService {
       }
     }
 
-    const raw = localStorage.getItem('pc_sessions');
+    const raw = localStorage.getItem(this.kSessions);
     let sessions = raw ? JSON.parse(raw) : [];
     if (filterDate) {
       if (filterDate.length === 7) {
@@ -202,7 +343,7 @@ class DatabaseService {
       recordedBy: currentUser?.name || 'مستخدم'
     };
     sessions.unshift(newSession);
-    localStorage.setItem('pc_sessions', JSON.stringify(sessions));
+    localStorage.setItem(this.kSessions, JSON.stringify(sessions));
     return newSession;
   }
 
@@ -218,7 +359,7 @@ class DatabaseService {
 
     let sessions = await this.getSessions();
     sessions = sessions.filter(s => s.id !== sessionId);
-    localStorage.setItem('pc_sessions', JSON.stringify(sessions));
+    localStorage.setItem(this.kSessions, JSON.stringify(sessions));
     return true;
   }
 
@@ -241,7 +382,7 @@ class DatabaseService {
       }
     }
 
-    const raw = localStorage.getItem('pc_expenses');
+    const raw = localStorage.getItem(this.kExpenses);
     let expenses = raw ? JSON.parse(raw) : [];
     if (filterDate) {
       if (filterDate.length === 7) {
@@ -276,7 +417,7 @@ class DatabaseService {
       recordedBy: currentUser?.name || 'مستخدم'
     };
     expenses.unshift(newExp);
-    localStorage.setItem('pc_expenses', JSON.stringify(expenses));
+    localStorage.setItem(this.kExpenses, JSON.stringify(expenses));
     return newExp;
   }
 
@@ -293,7 +434,7 @@ class DatabaseService {
       }
     }
 
-    const raw = localStorage.getItem('pc_users');
+    const raw = localStorage.getItem(this.kUsers);
     return raw ? JSON.parse(raw) : [];
   }
 
@@ -310,7 +451,7 @@ class DatabaseService {
     const users = await this.getUsers();
     const newUser = { ...userData, id: 'u-' + Date.now() };
     users.push(newUser);
-    localStorage.setItem('pc_users', JSON.stringify(users));
+    localStorage.setItem(this.kUsers, JSON.stringify(users));
     return newUser;
   }
 
@@ -326,7 +467,7 @@ class DatabaseService {
 
     let users = await this.getUsers();
     users = users.filter(u => u.id !== userId);
-    localStorage.setItem('pc_users', JSON.stringify(users));
+    localStorage.setItem(this.kUsers, JSON.stringify(users));
     return true;
   }
 
@@ -341,7 +482,7 @@ class DatabaseService {
       }
     }
 
-    const raw = localStorage.getItem('pc_audit_logs');
+    const raw = localStorage.getItem(this.kAudit);
     return raw ? JSON.parse(raw) : [];
   }
 
@@ -367,7 +508,33 @@ class DatabaseService {
     const logs = await this.getAuditLogs();
     logs.unshift({ id: 'log-' + Date.now(), ...newLog });
     if (logs.length > 200) logs.pop();
-    localStorage.setItem('pc_audit_logs', JSON.stringify(logs));
+    localStorage.setItem(this.kAudit, JSON.stringify(logs));
+  }
+  // ================= Backup & Restore =================
+  async createFullBackup() {
+    const backup = {
+      timestamp: new Date().toISOString(),
+      center: 'Alexandria Specialist Center for Physical Therapy (ASCPT)',
+      patients: await this.getPatients(),
+      sessions: await this.getSessions(),
+      expenses: await this.getExpenses(),
+      users: await this.getUsers(),
+      auditLogs: await this.getAuditLogs()
+    };
+    return backup;
+  }
+
+  async restoreFromBackup(backupData) {
+    if (!backupData || !Array.isArray(backupData.patients)) {
+      throw new Error('ملف النسخة الاحتياطية غير صالح أو تالف.');
+    }
+    localStorage.setItem(this.kPatients, JSON.stringify(backupData.patients || []));
+    localStorage.setItem(this.kSessions, JSON.stringify(backupData.sessions || []));
+    localStorage.setItem(this.kExpenses, JSON.stringify(backupData.expenses || []));
+    if (Array.isArray(backupData.users) && backupData.users.length > 0) {
+      localStorage.setItem(this.kUsers, JSON.stringify(backupData.users));
+    }
+    return true;
   }
 }
 

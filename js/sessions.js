@@ -184,6 +184,15 @@ export class SessionsManager {
 
   async handleSaveSession(e) {
     e.preventDefault();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تسجيل الجلسة...';
+      setTimeout(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> حفظ الجلسة';
+      }, 1500);
+    }
     const currentUser = auth.getCurrentUser();
     
     if (!this.selectedPatientId) {

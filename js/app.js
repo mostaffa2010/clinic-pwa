@@ -51,6 +51,7 @@ class App {
     // 3. ربط أحداث التنقل والحوارات
     this.bindNavigation();
     this.bindHardwareBackButton();
+    this.updateTrainingModeUI();
     this.bindModalsAndAuth();
     this.bindCustomDialog();
 
@@ -226,6 +227,97 @@ class App {
         }
       }
     });
+  }
+
+  // ================= Sandbox & Training Mode =================
+  updateTrainingModeUI() {
+    const isTraining = db.isTraining;
+    const banner = document.getElementById('sandbox-banner');
+    if (banner) banner.style.display = isTraining ? 'flex' : 'none';
+
+    const mText = document.getElementById('training-btn-text-mobile');
+    if (mText) mText.textContent = isTraining ? 'خروج من التدريب' : 'تدريب';
+
+    const dText = document.getElementById('training-btn-text-desktop');
+    if (dText) dText.textContent = isTraining ? 'الخروج من الوضع التدريبي' : 'تفعيل الوضع التدريبي (Sandbox)';
+  }
+
+  async toggleTrainingMode(forceState = null) {
+    const nextState = forceState !== null ? forceState : !db.isTraining;
+    db.setTrainingMode(nextState);
+
+    this.updateTrainingModeUI();
+
+    if (nextState) {
+      this.showToast('تم تفعيل الوضع التدريبي بنجاح - بيانات آمنة للشرح والتجربة');
+    } else {
+      this.showToast('تم الرجوع إلى قاعدة بيانات ASCPT السحابية الحقيقية');
+    }
+
+    await this.refreshAll();
+  }
+
+  async resetTrainingData() {
+    const confirmed = await this.showConfirm(
+      'هل ترغب في إعادة تعيين عينات التدريب الافتراضية (المرضى والجلسات التجريبية للشرح)؟',
+      'إعادة ضبط عينات التدريب'
+    );
+    if (confirmed) {
+      db.initSandboxData(true);
+      await this.refreshAll();
+      this.showToast('تمت استعادة عينات التدريب بنجاح');
+    }
+  }
+
+  // ================= Backup & Restore =================
+  async downloadBackup() {
+    try {
+      const backup = await db.createFullBackup();
+      const str = JSON.stringify(backup, null, 2);
+      const blob = new Blob([str], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `نسخة_احتياطية_ASCPT_${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      this.showToast('تم تنزيل النسخة الاحتياطية بنجاح');
+    } catch (err) {
+      this.showAlert('تعذر إنشاء النسخة الاحتياطية: ' + err.message, 'خطأ', 'danger');
+    }
+  }
+
+  triggerRestoreBackup() {
+    const input = document.getElementById('backup-file-input');
+    if (input) input.click();
+  }
+
+  async handleFileRestore(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      const confirmed = await this.showConfirm(
+        `هل أنت متأكد من استعادة النسخة الاحتياطية المؤرخة في: ${data.timestamp || 'غير محدد'}؟ سيتم دمج وتحديث السجلات.`,
+        'تأكيد استعادة البيانات'
+      );
+
+      if (confirmed) {
+        await db.restoreFromBackup(data);
+        await this.refreshAll();
+        this.showToast('تمت استعادة البيانات بنجاح');
+      }
+    } catch (err) {
+      this.showAlert('فشلت استعادة البيانات: ' + err.message, 'خطأ في الملف', 'danger');
+    } finally {
+      event.target.value = '';
+    }
   }
 
   // اختصارات مباشرة للأزرار
