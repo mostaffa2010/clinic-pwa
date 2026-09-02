@@ -1,5 +1,5 @@
 // ========================================================
-// PhysioCare - Daily Financial & Report Module
+// ASCPT - Daily & Monthly Financial & Statistical Reports
 // ========================================================
 
 import { db } from './db.js';
@@ -8,18 +8,26 @@ import { auth } from './auth.js';
 export class FinanceManager {
   constructor(app) {
     this.app = app;
+    this.reportMode = 'daily'; // 'daily' | 'monthly'
     this.currentDate = new Date().toISOString().split('T')[0];
+    this.currentMonth = this.currentDate.substring(0, 7); // YYYY-MM
     this.selectedDoctor = 'all';
   }
 
   async init() {
     this.bindEvents();
+    
     const datePicker = document.getElementById('finance-date-picker');
     if (datePicker) datePicker.value = this.currentDate;
-    await this.loadDailyReport();
+
+    const monthPicker = document.getElementById('finance-month-picker');
+    if (monthPicker) monthPicker.value = this.currentMonth;
+
+    await this.loadReport();
   }
 
   bindEvents() {
+    // Daily Date Picker
     const datePicker = document.getElementById('finance-date-picker');
     if (datePicker) {
       datePicker.addEventListener('change', (e) => {
@@ -28,6 +36,16 @@ export class FinanceManager {
       });
     }
 
+    // Monthly Month Picker
+    const monthPicker = document.getElementById('finance-month-picker');
+    if (monthPicker) {
+      monthPicker.addEventListener('change', (e) => {
+        this.currentMonth = e.target.value;
+        this.loadMonthlyReport();
+      });
+    }
+
+    // Doctor Filter for Daily
     const doctorFilter = document.getElementById('finance-doctor-filter');
     if (doctorFilter) {
       doctorFilter.addEventListener('change', (e) => {
@@ -36,18 +54,42 @@ export class FinanceManager {
       });
     }
 
-    // Add Expense Button & Form
-    const btnAddExpense = document.getElementById('btn-add-expense');
-    if (btnAddExpense) {
-      btnAddExpense.addEventListener('click', () => {
-        document.getElementById('form-expense').reset();
-        this.app.openModal('modal-expense');
-      });
-    }
-
+    // Expense Form
     const formExpense = document.getElementById('form-expense');
     if (formExpense) {
       formExpense.addEventListener('submit', (e) => this.handleAddExpense(e));
+    }
+  }
+
+  setReportMode(mode) {
+    this.reportMode = mode;
+    
+    const btnDaily = document.getElementById('btn-mode-daily');
+    const btnMonthly = document.getElementById('btn-mode-monthly');
+    const filterDaily = document.getElementById('filter-group-daily');
+    const filterMonthly = document.getElementById('filter-group-monthly');
+    const contentDaily = document.getElementById('finance-daily-content');
+    const contentMonthly = document.getElementById('finance-monthly-content');
+    const labelPatients = document.getElementById('rep-total-patients-label');
+
+    if (mode === 'daily') {
+      if (btnDaily) { btnDaily.className = 'btn btn-primary btn-sm'; }
+      if (btnMonthly) { btnMonthly.className = 'btn btn-outline btn-sm'; }
+      if (filterDaily) filterDaily.style.display = 'flex';
+      if (filterMonthly) filterMonthly.style.display = 'none';
+      if (contentDaily) contentDaily.style.display = 'block';
+      if (contentMonthly) contentMonthly.style.display = 'none';
+      if (labelPatients) labelPatients.textContent = 'مرضى اليوم';
+      this.loadDailyReport();
+    } else {
+      if (btnDaily) { btnDaily.className = 'btn btn-outline btn-sm'; }
+      if (btnMonthly) { btnMonthly.className = 'btn btn-primary btn-sm'; }
+      if (filterDaily) filterDaily.style.display = 'none';
+      if (filterMonthly) filterMonthly.style.display = 'flex';
+      if (contentDaily) contentDaily.style.display = 'none';
+      if (contentMonthly) contentMonthly.style.display = 'block';
+      if (labelPatients) labelPatients.textContent = 'مرضى الشهر';
+      this.loadMonthlyReport();
     }
   }
 
@@ -79,32 +121,36 @@ export class FinanceManager {
 
     this.app.closeModal('modal-expense');
     this.app.showToast('تم تسجيل المصروف بنجاح');
-    await this.loadDailyReport();
+    await this.loadReport();
     this.app.refreshAll();
   }
 
+  async loadReport() {
+    if (this.reportMode === 'daily') {
+      await this.loadDailyReport();
+    } else {
+      await this.loadMonthlyReport();
+    }
+  }
+
+  // ================= 1. DAILY REPORT =================
   async loadDailyReport() {
     const allSessions = await db.getSessions(this.currentDate);
     const allExpenses = await db.getExpenses(this.currentDate);
+    const doctors = await db.getDoctors();
 
-    // Apply Doctor Filter if selected
     let filteredSessions = allSessions;
     if (this.selectedDoctor !== 'all') {
       filteredSessions = allSessions.filter(s => s.doctor === this.selectedDoctor);
     }
 
-    // Calculations
     const totalPatients = filteredSessions.length;
     const totalCash = filteredSessions.reduce((acc, curr) => acc + (parseFloat(curr.amountPaid) || 0), 0);
-    const insuranceCount = filteredSessions.filter(s => s.payType === 'insurance').length;
     const totalExpenses = allExpenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
     const netCash = totalCash - totalExpenses;
 
-    // Doctor Patient Counts Breakdown
     const docCounts = {};
-    allSessions.forEach(s => {
-      docCounts[s.doctor] = (docCounts[s.doctor] || 0) + 1;
-    });
+    allSessions.forEach(s => { docCounts[s.doctor] = (docCounts[s.doctor] || 0) + 1; });
 
     // Update KPI UI
     document.getElementById('rep-total-patients').textContent = totalPatients;
@@ -117,7 +163,7 @@ export class FinanceManager {
       netCashEl.style.color = netCash >= 0 ? 'var(--success)' : 'var(--danger)';
     }
 
-    // Update Doctor Filter options dynamically
+    // Dynamic Doctor Filter
     const docFilter = document.getElementById('finance-doctor-filter');
     if (docFilter) {
       const currentVal = docFilter.value;
@@ -128,10 +174,9 @@ export class FinanceManager {
       }
     }
 
-    // Update Doctors Breakdown UI
+    // Doctors Breakdown Cards
     const docContainer = document.getElementById('doctors-breakdown-container');
     if (docContainer) {
-      const doctors = await db.getDoctors();
       docContainer.innerHTML = doctors.map(doc => {
         const count = docCounts[doc] || 0;
         return `
@@ -146,7 +191,7 @@ export class FinanceManager {
       }).join('');
     }
 
-    // Update Sessions Table in Finance View
+    // Daily Sessions Table
     const tbody = document.getElementById('finance-report-tbody');
     if (tbody) {
       if (filteredSessions.length === 0) {
@@ -161,6 +206,9 @@ export class FinanceManager {
             ? (s.contractType === 'direct' ? 'مباشر' : 'غير مباشر')
             : '-';
 
+          const parts = Array.isArray(s.bodyParts) ? s.bodyParts.join('، ') : (s.bodyParts || '');
+          const count = s.bodyPartsCount || (Array.isArray(s.bodyParts) ? s.bodyParts.length : 1);
+
           return `
             <tr>
               <td style="font-weight: 700;">${s.patientName}</td>
@@ -168,7 +216,7 @@ export class FinanceManager {
               <td>${payBadge}</td>
               <td>${s.insuranceName || '-'}</td>
               <td>${contractLabel}</td>
-              <td><span class="badge badge-role-doctor">${s.bodyPartsCount} أعضاء (${s.bodyParts.join('، ')})</span></td>
+              <td><span class="badge badge-role-doctor">${count} أعضاء (${parts})</span></td>
               <td style="font-weight: 700; color: var(--success);">${s.amountPaid} ج.م</td>
               <td style="font-size: 0.8rem; color: var(--text-muted);">${s.recordedBy}</td>
             </tr>
@@ -177,7 +225,7 @@ export class FinanceManager {
       }
     }
 
-    // Update Expenses Table
+    // Daily Expenses Table
     const expTbody = document.getElementById('finance-expenses-tbody');
     if (expTbody) {
       if (allExpenses.length === 0) {
@@ -194,7 +242,7 @@ export class FinanceManager {
       }
     }
 
-    // Update Dashboard Stats
+    // Dashboard Stats update
     const dashPatients = document.getElementById('stat-patients-today');
     const dashCash = document.getElementById('stat-cash-today');
     const dashInsurance = document.getElementById('stat-insurance-count');
@@ -202,10 +250,9 @@ export class FinanceManager {
 
     if (dashPatients) dashPatients.textContent = allSessions.length;
     if (dashCash) dashCash.textContent = `${totalCash.toLocaleString('ar-EG')} ج.م`;
-    if (dashInsurance) dashInsurance.textContent = `${insuranceCount} حالات`;
+    if (dashInsurance) dashInsurance.textContent = `${allSessions.filter(s => s.payType === 'insurance').length} حالات`;
     if (dashExpenses) dashExpenses.textContent = `${totalExpenses.toLocaleString('ar-EG')} ج.م`;
 
-    // Update Dashboard Recent Table
     const dashTbody = document.querySelector('#dashboard-recent-table tbody');
     if (dashTbody) {
       const recent = allSessions.slice(0, 5);
@@ -217,7 +264,7 @@ export class FinanceManager {
             <td style="font-weight: 700;">${s.patientName}</td>
             <td>${s.doctor}</td>
             <td>${s.payType === 'cash' ? 'نقدي' : (s.insuranceName || 'شركة')}</td>
-            <td>${s.bodyPartsCount} أعضاء</td>
+            <td>${s.bodyPartsCount || 1} أعضاء</td>
             <td style="font-weight: 700; color: var(--success);">${s.amountPaid} ج.م</td>
             <td style="font-size: 0.8rem; color: var(--text-muted);">${s.recordedAt}</td>
           </tr>
@@ -226,9 +273,119 @@ export class FinanceManager {
     }
   }
 
+  // ================= 2. MONTHLY REPORT =================
+  async loadMonthlyReport() {
+    const allSessions = await db.getSessions(this.currentMonth);
+    const allExpenses = await db.getExpenses(this.currentMonth);
+    const doctors = await db.getDoctors();
+
+    const totalPatients = allSessions.length;
+    const totalCash = allSessions.reduce((acc, curr) => acc + (parseFloat(curr.amountPaid) || 0), 0);
+    const totalExpenses = allExpenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
+    const netCash = totalCash - totalExpenses;
+
+    // Update KPI UI
+    document.getElementById('rep-total-patients').textContent = totalPatients;
+    document.getElementById('rep-total-cash').textContent = `${totalCash.toLocaleString('ar-EG')} ج.م`;
+    document.getElementById('rep-total-expenses').textContent = `${totalExpenses.toLocaleString('ar-EG')} ج.م`;
+    
+    const netCashEl = document.getElementById('rep-net-cash');
+    if (netCashEl) {
+      netCashEl.textContent = `${netCash.toLocaleString('ar-EG')} ج.م`;
+      netCashEl.style.color = netCash >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+
+    // A. Doctors Breakdown Table (Monthly)
+    const docTbody = document.getElementById('monthly-doctors-tbody');
+    if (docTbody) {
+      if (doctors.length === 0 || totalPatients === 0) {
+        docTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">لا توجد بيانات جلسات مسجلة لهذا الشهر.</td></tr>`;
+      } else {
+        docTbody.innerHTML = doctors.map(doc => {
+          const docSessions = allSessions.filter(s => s.doctor === doc);
+          const cashCount = docSessions.filter(s => s.payType === 'cash').length;
+          const insCount = docSessions.filter(s => s.payType === 'insurance').length;
+          const total = docSessions.length;
+          const pct = totalPatients > 0 ? ((total / totalPatients) * 100).toFixed(1) : 0;
+
+          return `
+            <tr>
+              <td style="font-weight: 700;"><i class="fa-solid fa-user-doctor" style="color: var(--primary); margin-left: 6px;"></i> ${doc}</td>
+              <td style="color: var(--success); font-weight: 700;">${cashCount} مريض</td>
+              <td style="color: var(--primary); font-weight: 700;">${insCount} مريض</td>
+              <td style="font-weight: 800; font-size: 0.95rem;">${total} مريض</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-weight: 700; width: 45px;">${pct}%</span>
+                  <div style="flex: 1; background-color: var(--bg-subtle); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div style="width: ${pct}%; background-color: var(--primary); height: 100%;"></div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    // B. Insurance & Cash Distribution Table
+    const insTbody = document.getElementById('monthly-insurance-tbody');
+    if (insTbody) {
+      if (totalPatients === 0) {
+        insTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">لا توجد حركات مسجلة لهذا الشهر.</td></tr>`;
+      } else {
+        const categories = {};
+        allSessions.forEach(s => {
+          if (s.payType === 'cash') {
+            const key = 'نقدي (Cash)';
+            if (!categories[key]) categories[key] = { name: key, type: 'سداد نقدي مباشر', count: 0 };
+            categories[key].count++;
+          } else {
+            const compName = s.insuranceName || 'شركة غير محددة';
+            const contract = s.contractType === 'direct' ? 'تعاقد مباشر' : 'تعاقد غير مباشر';
+            const key = `${compName} (${contract})`;
+            if (!categories[key]) categories[key] = { name: compName, type: contract, count: 0 };
+            categories[key].count++;
+          }
+        });
+
+        insTbody.innerHTML = Object.values(categories).map(item => {
+          const pct = ((item.count / totalPatients) * 100).toFixed(1);
+          return `
+            <tr>
+              <td style="font-weight: 700;">${item.name}</td>
+              <td><span class="badge ${item.type.includes('مباشر') ? 'badge-direct' : (item.type.includes('نقدي') ? 'badge-cash' : 'badge-indirect')}">${item.type}</span></td>
+              <td style="font-weight: 800; color: var(--primary); font-size: 0.95rem;">${item.count} حالة</td>
+              <td style="font-weight: 700;">${pct}%</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    // C. Monthly Expenses Table
+    const mExpTbody = document.getElementById('monthly-expenses-tbody');
+    if (mExpTbody) {
+      if (allExpenses.length === 0) {
+        mExpTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">لا توجد مصروفات مسجلة لهذا الشهر.</td></tr>`;
+      } else {
+        mExpTbody.innerHTML = allExpenses.map(e => `
+          <tr>
+            <td>${e.date || '-'}</td>
+            <td style="font-weight: 600;">${e.title}</td>
+            <td style="font-weight: 700; color: var(--danger);">${e.amount} ج.م</td>
+            <td style="font-size: 0.8rem; color: var(--text-muted);">${e.recordedBy || '-'}</td>
+          </tr>
+        `).join('');
+      }
+    }
+  }
+
   getDataForExport() {
     return {
+      mode: this.reportMode,
       date: this.currentDate,
+      month: this.currentMonth,
       doctor: this.selectedDoctor
     };
   }

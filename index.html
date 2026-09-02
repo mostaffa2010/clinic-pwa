@@ -42,7 +42,7 @@
   <!-- Printable Clinic Report Header (Visible only when printing) -->
   <div class="print-header">
     <h1><i class="fa-solid fa-hospital"></i> Alexandria Specialist Center for Physical Therapy (ASCPT)</h1>
-    <p style="font-size: 9pt; color: #475569; font-weight: bold;">مركز الإسكندرية التخصصي للعلاج الطبيعي والتأهيل</p>
+    <p style="font-size: 9pt; color: #475569; font-weight: bold;" id="print-report-subtitle">مركز الإسكندرية التخصصي للعلاج الطبيعي والتأهيل</p>
     <p>تقرير إيرادات وحركات الجلسات اليومية</p>
     <p id="print-report-meta">التاريخ: 2026-09-02 | وقت الطباعة: 10:00 ص</p>
   </div>
@@ -384,8 +384,8 @@
       <section id="view-finance" class="view-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2 style="font-size: 1.35rem; font-weight: 800;">الحسابات والتقرير اليومي</h2>
-            <p style="font-size: 0.85rem; color: var(--text-muted);">حسابات العيادة، الإيرادات، المصروفات، والطباعة اللاسلكية</p>
+            <h2 style="font-size: 1.35rem; font-weight: 800;" id="finance-header-title">الحسابات والتقارير المالية</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);" id="finance-header-sub">متابعة الإيرادات والمصروفات والتقارير اليومية والشهرية لـ ASCPT</p>
           </div>
           <!-- Action Buttons -->
           <div class="no-print" style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -401,9 +401,20 @@
           </div>
         </div>
 
+        <!-- Mode Toggle Tabs (Daily vs Monthly) -->
+        <div class="no-print" style="display: flex; gap: 10px; margin-bottom: 14px;">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-mode-daily" onclick="financeManager.setReportMode('daily')">
+            <i class="fa-solid fa-calendar-day"></i> التقرير اليومي
+          </button>
+          <button type="button" class="btn btn-outline btn-sm" id="btn-mode-monthly" onclick="financeManager.setReportMode('monthly')">
+            <i class="fa-solid fa-calendar-days"></i> التقرير الشهري الإحصائي
+          </button>
+        </div>
+
         <!-- Filter Bar -->
         <div class="card no-print" style="padding: 12px; margin-bottom: 16px;">
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+          <!-- Daily Filter Controls -->
+          <div id="filter-group-daily" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <label style="font-size: 0.85rem; font-weight: bold;">تاريخ التقرير:</label>
               <input type="date" id="finance-date-picker" class="form-control" style="width: auto;">
@@ -421,6 +432,17 @@
               </div>
             </div>
           </div>
+
+          <!-- Monthly Filter Controls -->
+          <div id="filter-group-monthly" style="display: none; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <label style="font-size: 0.85rem; font-weight: bold;">شهر التقرير:</label>
+              <input type="month" id="finance-month-picker" class="form-control" style="width: auto;">
+            </div>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">
+              (تقرير شامل لإحصائيات الشهر، أداء الأطباء، وجهات التأمين بدون أسماء تفصيلية)
+            </span>
+          </div>
         </div>
 
         <!-- Financial KPI Summary Cards -->
@@ -429,7 +451,7 @@
             <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
             <div class="stat-info">
               <div class="stat-value" id="rep-total-patients">0</div>
-              <div class="stat-label">إجمالي المرضى</div>
+              <div class="stat-label" id="rep-total-patients-label">مرضى اليوم</div>
             </div>
           </div>
           <div class="stat-box">
@@ -450,66 +472,139 @@
             <div class="stat-icon amber"><i class="fa-solid fa-vault"></i></div>
             <div class="stat-info">
               <div class="stat-value" id="rep-net-cash">0 ج.م</div>
-              <div class="stat-label">صافي النقدية بالدرج</div>
+              <div class="stat-label" id="rep-net-cash-label">صافي النقدية بالدرج</div>
             </div>
           </div>
         </div>
 
-        <!-- Doctors Breakdown Box -->
-        <div class="card" style="margin-bottom: 16px;">
-          <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-user-doctor"></i> إحصائية مرضى كل دكتور</span>
+        <!-- ================= CONTENT A: DAILY REPORT ================= -->
+        <div id="finance-daily-content">
+          <!-- Doctors Breakdown Box -->
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-user-doctor"></i> إحصائية مرضى كل دكتور (اليوم)</span>
+            </div>
+            <div id="doctors-breakdown-container" style="display: flex; gap: 15px; flex-wrap: wrap;">
+              <!-- Rendered dynamically -->
+            </div>
           </div>
-          <div id="doctors-breakdown-container" style="display: flex; gap: 15px; flex-wrap: wrap;">
-            <!-- Rendered dynamically -->
+
+          <!-- Detailed Patients Sessions Table -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-table-list"></i> بيان تفصيلي بمرضى اليوم</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="finance-report-table">
+                <thead>
+                  <tr>
+                    <th>المريض</th>
+                    <th>الدكتور المعالج</th>
+                    <th>نظام الدفع</th>
+                    <th>الشركة</th>
+                    <th>نوع التعاقد</th>
+                    <th>الأعضاء المعالجة</th>
+                    <th>المبلغ</th>
+                    <th>المسجل</th>
+                  </tr>
+                </thead>
+                <tbody id="finance-report-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Daily Expenses Table -->
+          <div class="card" style="margin-top: 16px;">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-receipt"></i> مصروفات اليوم</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>بند المصروف</th>
+                    <th>المبلغ</th>
+                    <th>المسؤول عن الصرف</th>
+                    <th>الوقت</th>
+                  </tr>
+                </thead>
+                <tbody id="finance-expenses-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- Detailed Patients Sessions Table -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-table-list"></i> بيان تفصيلي بمرضى اليوم</span>
+        <!-- ================= CONTENT B: MONTHLY REPORT ================= -->
+        <div id="finance-monthly-content" style="display: none;">
+          <!-- Doctors Performance Table -->
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-user-doctor"></i> إحصائية أطباء المركز للشهر (مصنفة نقدي وشركات)</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>الطبيب المعالج</th>
+                    <th>مرضى نقدي</th>
+                    <th>مرضى شركات تأمين</th>
+                    <th>إجمالي الحالات</th>
+                    <th>النسبة من إجمالي المركز</th>
+                  </tr>
+                </thead>
+                <tbody id="monthly-doctors-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="table-responsive">
-            <table class="data-table" id="finance-report-table">
-              <thead>
-                <tr>
-                  <th>المريض</th>
-                  <th>الدكتور المعالج</th>
-                  <th>نظام الدفع</th>
-                  <th>الشركة</th>
-                  <th>نوع التعاقد</th>
-                  <th>الأعضاء المعالجة</th>
-                  <th>المبلغ</th>
-                  <th>المسجل</th>
-                </tr>
-              </thead>
-              <tbody id="finance-report-tbody">
-                <!-- Rendered dynamically -->
-              </tbody>
-            </table>
-          </div>
-        </div>
 
-        <!-- Daily Expenses Table -->
-        <div class="card" style="margin-top: 16px;">
-          <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-receipt"></i> مصروفات اليوم</span>
+          <!-- Insurance and Cash Distribution Table -->
+          <div class="card" style="margin-bottom: 16px;">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-shield-halved"></i> توزيع المرضى حسب جهات الدفع والتأمين</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>جهة السداد / شركة التأمين</th>
+                    <th>نوع التعاقد</th>
+                    <th>عدد الحالات</th>
+                    <th>النسبة المئوية</th>
+                  </tr>
+                </thead>
+                <tbody id="monthly-insurance-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>بند المصروف</th>
-                  <th>المبلغ</th>
-                  <th>المسؤول عن الصرف</th>
-                  <th>الوقت</th>
-                </tr>
-              </thead>
-              <tbody id="finance-expenses-tbody">
-                <!-- Rendered dynamically -->
-              </tbody>
-            </table>
+
+          <!-- Monthly Expenses Table -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fa-solid fa-receipt"></i> بيان مصروفات الشهر</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>التاريخ</th>
+                    <th>بند المصروف</th>
+                    <th>المبلغ المنصرف</th>
+                    <th>المسؤول عن الصرف</th>
+                  </tr>
+                </thead>
+                <tbody id="monthly-expenses-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

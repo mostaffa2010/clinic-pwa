@@ -154,7 +154,11 @@ class DatabaseService {
       try {
         let ref = this.firestore.collection('sessions');
         if (filterDate) {
-          ref = ref.where('date', '==', filterDate);
+          if (filterDate.length === 7) { // Monthly query: YYYY-MM
+            ref = ref.where('date', '>=', `${filterDate}-01`).where('date', '<=', `${filterDate}-31`);
+          } else {
+            ref = ref.where('date', '==', filterDate);
+          }
         }
         const snap = await this.withTimeout(ref.get());
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -166,7 +170,11 @@ class DatabaseService {
     const raw = localStorage.getItem('pc_sessions');
     let sessions = raw ? JSON.parse(raw) : [];
     if (filterDate) {
-      sessions = sessions.filter(s => s.date === filterDate);
+      if (filterDate.length === 7) {
+        sessions = sessions.filter(s => s.date && s.date.startsWith(filterDate));
+      } else {
+        sessions = sessions.filter(s => s.date === filterDate);
+      }
     }
     return sessions;
   }
@@ -220,7 +228,11 @@ class DatabaseService {
       try {
         let ref = this.firestore.collection('expenses');
         if (filterDate) {
-          ref = ref.where('date', '==', filterDate);
+          if (filterDate.length === 7) { // Monthly query: YYYY-MM
+            ref = ref.where('date', '>=', `${filterDate}-01`).where('date', '<=', `${filterDate}-31`);
+          } else {
+            ref = ref.where('date', '==', filterDate);
+          }
         }
         const snap = await this.withTimeout(ref.get());
         return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -232,7 +244,11 @@ class DatabaseService {
     const raw = localStorage.getItem('pc_expenses');
     let expenses = raw ? JSON.parse(raw) : [];
     if (filterDate) {
-      expenses = expenses.filter(e => e.date === filterDate);
+      if (filterDate.length === 7) {
+        expenses = expenses.filter(e => e.date && e.date.startsWith(filterDate));
+      } else {
+        expenses = expenses.filter(e => e.date === filterDate);
+      }
     }
     return expenses;
   }
