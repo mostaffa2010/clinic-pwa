@@ -1,47 +1,21 @@
-const CACHE_NAME = 'ascpt-pwa-v1';
-const ASSETS = [
-    './',
-    './index.html',
-    './manifest.json',
-    './css/style.css',
-    './css/print.css',
-    './icons/icon-192.png',
-    './icons/icon-512.png',
-    './js/app.js',
-    './js/firebase-config.js',
-    './js/db.js',
-    './js/auth.js',
-    './js/roles.js',
-    './js/patients.js',
-    './js/sessions.js',
-    './js/finance.js',
-    './js/export.js',
-    './js/audit.js',
-    './js/pwa.js'
-];
+// sw.js - Service Worker لتطبيق ASCPT (نفس معمارية لَو تِعرَف المتوافقة مع آيفون)
+const CACHE_NAME = 'ascpt-online-v1';
 
-self.addEventListener('install', (e) => {
-    e.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-    );
-    self.skipWaiting();
-});
+self.addEventListener('install', () => self.skipWaiting());
 
-self.addEventListener('activate', (e) => {
-    e.waitUntil(
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
         caches.keys().then((keys) => {
-            return Promise.all(
-                keys.map((key) => {
-                    if (key !== CACHE_NAME) return caches.delete(key);
-                })
-            );
-        })
+            return Promise.all(keys.map((k) => caches.delete(k)));
+        }).then(() => self.clients.claim())
     );
-    self.clients.claim();
 });
 
-self.addEventListener('fetch', (e) => {
-    e.respondWith(
-        caches.match(e.request).then((res) => res || fetch(e.request))
+// الاعتماد المباشر على الشبكة مع استرجاع الكاش عند انقطاع النت
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        fetch(event.request).catch(() => {
+            return caches.match(event.request);
+        })
     );
 });
